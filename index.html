@@ -413,6 +413,83 @@
   .cs-body code{font-family:var(--font-mono);font-size:12.5px;background:var(--surface-2);border:1px solid var(--line-soft);border-radius:5px;padding:1px 6px;color:var(--accent-ink)}
   .cs-body .csnote{font-size:12.5px;color:var(--ink-soft);background:var(--surface-2);border-left:3px solid var(--accent-line);border-radius:6px;padding:8px 11px;margin:8px 0}
   @media (max-width:1000px){.kb{grid-template-columns:1fr}.kbread{display:none}}
+
+  /* ---- FLASHCARDS ---- */
+  .deckgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:14px}
+  .deckcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;display:flex;flex-direction:column;gap:4px;position:relative}
+  .deckcard .dname{font-family:var(--font-serif);font-size:16px;font-weight:600}
+  .deckcard .dcount{font-size:12px;color:var(--muted)}
+  .deckcard .dbar{height:6px;border-radius:20px;background:var(--surface-3);overflow:hidden;margin:8px 0 10px}
+  .deckcard .dbar span{display:block;height:100%;background:var(--good);border-radius:20px}
+  .deckcard .dacts{display:flex;gap:7px;margin-top:auto}
+  .deckcard .dacts .btn{padding:6px 12px;font-size:12px}
+  .deckcard .ddel{position:absolute;top:10px;right:12px;border:none;background:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1}
+  .deckcard .ddel:hover{color:var(--danger)}
+  .studyhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:12px}
+  .studyttl{font-family:var(--font-serif);font-size:20px;font-weight:600}
+  .studyprog{font-size:12.5px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .flip{perspective:1400px;cursor:pointer;height:300px}
+  .flip-in{position:relative;width:100%;height:100%;transition:transform .5s;transform-style:preserve-3d}
+  .flip.flipped .flip-in{transform:rotateY(180deg)}
+  .flip-f,.flip-b{position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;border-radius:var(--r-lg);border:1px solid var(--line);display:flex;align-items:center;justify-content:center;text-align:center;padding:32px;overflow:auto}
+  .flip-f{background:var(--surface);font-family:var(--font-serif);font-size:20px;font-weight:600;color:var(--ink)}
+  .flip-b{background:var(--accent-bg);color:var(--ink);font-size:15.5px;line-height:1.6;transform:rotateY(180deg);border-color:var(--accent-line)}
+  .flhint{text-align:center;font-size:11.5px;color:var(--muted);margin:10px 0 6px}
+  .ceditrow{border:1px solid var(--line);border-radius:10px;padding:12px;margin-bottom:9px;background:var(--surface-2);position:relative}
+  .ceditrow textarea{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;color:var(--ink);outline:none;resize:vertical;margin-bottom:7px}
+  .ceditrow .cdel{position:absolute;top:8px;right:10px;border:none;background:none;color:var(--muted);cursor:pointer;font-size:17px}
+  .ceditrow .cdel:hover{color:var(--danger)}
+
+  /* ---- PRESENTATIONS ---- */
+  .prslide{background:#fff;color:#1a1a1a;border-radius:10px;box-shadow:0 2px 10px rgba(0,0,0,.12);padding:20px 22px;margin-bottom:14px;border-left:5px solid var(--accent)}
+  .prslide .psn{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:#999}
+  .prslide .pst{font-family:Georgia,serif;font-size:18px;font-weight:700;margin:3px 0 8px;outline:none}
+  .prslide ul{margin:0;padding-left:20px}
+  .prslide li{font-size:13.5px;line-height:1.55;margin:4px 0;outline:none}
+  .prslide .psadd{font-size:11.5px;color:var(--accent-ink);background:none;border:1px dashed var(--accent-line);border-radius:7px;padding:3px 9px;cursor:pointer;margin-top:8px}
+  .prslide .psdel{float:right;border:none;background:none;color:#bbb;cursor:pointer;font-size:16px}
+  .prslide .psdel:hover{color:var(--danger)}
+  .prstage{position:fixed;inset:0;background:#0d0e12;z-index:90;display:none;flex-direction:column;align-items:center;justify-content:center;color:#fff}
+  .prstage.on{display:flex}
+  .prstage .slide{width:min(90vw,1000px);aspect-ratio:16/9;background:linear-gradient(135deg,#1b1d27,#242736);border-radius:16px;padding:6vh 6vw;display:flex;flex-direction:column;justify-content:center;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+  .prstage .slide h2{font-family:var(--font-serif);font-size:clamp(24px,4vw,42px);margin:0 0 4vh;color:#fff;border-bottom:2px solid var(--accent);padding-bottom:14px}
+  .prstage .slide ul{margin:0;padding-left:1.2em}
+  .prstage .slide li{font-size:clamp(15px,2.1vw,24px);line-height:1.5;margin:1.4vh 0;color:#e6e7ee}
+  .prstage .prctl{display:flex;align-items:center;gap:18px;margin-top:26px}
+  .prstage .prctl button{background:rgba(255,255,255,.1);border:none;color:#fff;border-radius:10px;padding:10px 16px;cursor:pointer;font-size:14px}
+  .prstage .prctl button:hover{background:rgba(255,255,255,.2)}
+  .prstage .prnum{font-variant-numeric:tabular-nums;color:#9a9db0}
+  .pr-saveitem{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line-soft);font-size:12.5px;cursor:pointer}
+  .pr-saveitem:hover{color:var(--accent-ink)}
+  .pr-saveitem .m{margin-left:auto;color:var(--muted);font-size:11px}
+  .pr-saveitem .x{border:none;background:none;color:var(--muted);cursor:pointer;font-size:16px}
+  .pr-saveitem .x:hover{color:var(--danger)}
+
+  /* ---- READING CORNER ---- */
+  .readwrap{flex:1;min-height:0;display:flex;flex-direction:column}
+  .readbar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--surface);flex-wrap:wrap}
+  .readbar .spacer{flex:1}
+  .readarea{flex:1;min-height:0;overflow:auto;padding:34px 20px 80px}
+  .readarea[data-rth="paper"]{background:#f7f4ec}
+  .readarea[data-rth="sepia"]{background:#f2e5cf}
+  .readarea[data-rth="night"]{background:#14151b}
+  .readdoc{max-width:720px;margin:0 auto;font-family:var(--font-serif);line-height:1.8;white-space:pre-wrap;word-wrap:break-word}
+  .readarea[data-rth="paper"] .readdoc{color:#2a2620}
+  .readarea[data-rth="sepia"] .readdoc{color:#4a3a24}
+  .readarea[data-rth="night"] .readdoc{color:#cdd0da}
+  .readdoc .rdtitle{font-size:26px;font-weight:700;margin-bottom:6px;display:block}
+  .readdoc .rdby{font-size:14px;opacity:.7;margin-bottom:22px;display:block;font-style:italic}
+  .readdoc w{cursor:pointer;border-radius:3px}
+  .readdoc w:hover{background:rgba(140,47,67,.18)}
+  .readdoc mark{background:rgba(240,200,90,.5);color:inherit;border-radius:2px}
+  .readarea[data-rth="night"] .readdoc w:hover{background:rgba(194,90,110,.3)}
+  .rdempty{max-width:520px;margin:60px auto;text-align:center;opacity:.75}
+  .dictpop{position:fixed;z-index:70;max-width:320px;background:var(--surface);border:1px solid var(--line);border-radius:12px;box-shadow:var(--shadow);padding:13px 15px;font-family:var(--font-sans)}
+  .dictpop .dw{font-family:var(--font-serif);font-size:16px;font-weight:600}
+  .dictpop .dph{font-size:12px;color:var(--muted);margin-bottom:6px}
+  .dictpop .dpos{font-size:11px;color:var(--accent-ink);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:6px}
+  .dictpop .dmean{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-top:2px}
+  .dictpop .dx{position:absolute;top:8px;right:10px;border:none;background:none;color:var(--muted);cursor:pointer;font-size:15px}
 </style>
 </head>
 <body>
@@ -560,8 +637,45 @@
       </div>
     </section>
 
-    <!-- other views: placeholders -->
-    <section class="view" data-view="cards"><div class="ph"><div class="pico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h11v13H4zM8 4h12v13" stroke-linejoin="round"/></svg></div><h2>Flashcards</h2><p>Coming in the next build — spaced-repetition decks for cases, maxims and current legal GK. The design is ready in the prototype.</p></div></section>
+    <!-- FLASHCARDS -->
+    <section class="view" data-view="cards">
+      <div class="exwrap" id="cardsHome">
+        <div class="expane">
+          <p class="exeyebrow">Spaced practice</p>
+          <h1 class="exh1">Flashcards</h1>
+          <p class="exlead">Flip-card decks for cases, maxims and quick revision. Make your own, or let Gemini build one from a note or a topic.</p>
+          <div class="resactions" style="margin-bottom:20px">
+            <button class="btn pri" id="cardNewDeck">+ New deck</button>
+            <button class="btn" id="cardGenDeck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><path d="M13 4l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" stroke-linejoin="round"/></svg>Generate with Gemini</button>
+          </div>
+          <div class="deckgrid" id="deckGrid"></div>
+        </div>
+      </div>
+      <div class="exwrap" id="cardsStudy" style="display:none">
+        <div class="expane" style="max-width:680px">
+          <button class="tbtn" id="cardBack" style="margin-bottom:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>All decks</button>
+          <div class="studyhead"><div class="studyttl" id="studyTitle"></div><div class="studyprog" id="studyProg"></div></div>
+          <div class="flip" id="flipCard"><div class="flip-in"><div class="flip-f" id="cardFront"></div><div class="flip-b" id="cardFace2"></div></div></div>
+          <div class="flhint">Tap the card to flip</div>
+          <div class="exnav">
+            <button class="btn" id="cardPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>Prev</button>
+            <div style="display:flex;gap:8px">
+              <button class="btn" id="cardAgain">Review again</button>
+              <button class="btn pri" id="cardKnown">Got it</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="exwrap" id="cardsEdit" style="display:none">
+        <div class="expane" style="max-width:680px">
+          <button class="tbtn" id="cardEditBack" style="margin-bottom:14px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>All decks</button>
+          <input class="etitle" id="deckName" placeholder="Deck name" style="font-size:22px;margin-bottom:14px">
+          <div id="cardEditList"></div>
+          <button class="resaddbtn" id="cardAdd" style="margin-top:6px">+ Add card</button>
+        </div>
+      </div>
+    </section>
+
     <section class="view" data-view="exam">
       <div class="exwrap">
         <!-- HOME -->
@@ -694,8 +808,56 @@
         </div>
       </div>
     </section>
-    <section class="view" data-view="present"><div class="ph"><div class="pico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4h18v12H3zM12 16v4" stroke-linejoin="round"/></svg></div><h2>Presentations</h2><p>Coming next — turn any note into a teaching deck and export it to PowerPoint.</p></div></section>
-    <section class="view" data-view="read"><div class="ph"><div class="pico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 6c-2-1.4-5-1.4-8-1v13c3-.4 6-.4 8 1 2-1.4 5-1.4 8-1V5c-3-.4-6-.4-8 1z" stroke-linejoin="round"/></svg></div><h2>Reading corner</h2><p>Coming next — free classics and your own uploads with sepia/night reading modes, highlights and a tap-to-look-up dictionary.</p></div></section>
+    <section class="view" data-view="present">
+      <div class="reswrap">
+        <div class="restop">
+          <div><p class="exeyebrow">Teach visually</p><div class="rt">Presentations</div></div>
+          <div class="resactions">
+            <button class="btn" id="prPptx" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><path d="M3 4h18v12H3zM12 16v4M8 20h8" stroke-linecap="round" stroke-linejoin="round"/></svg>Export .pptx</button>
+            <button class="btn pri" id="prPlay" style="display:none">▶ Present</button>
+          </div>
+        </div>
+        <div class="resgrid">
+          <div class="resedit" id="prForm">
+            <div class="resgrp"><div class="gh"><span>Build a deck</span></div>
+              <div class="resf"><label>Title</label><input class="resin" id="prTitle" placeholder="e.g. Doctrine of Frustration"></div>
+              <div class="resf"><label>From one of your notes</label><select class="resin" id="prNote"></select></div>
+              <div class="resf"><label>…or a topic / pasted content</label><textarea class="resin" id="prTopic" rows="4" placeholder="Type a topic, or paste text to turn into slides"></textarea></div>
+              <div class="res2">
+                <div class="resf"><label>Slides</label><select class="resin" id="prCount"><option>5</option><option selected>7</option><option>10</option><option>12</option></select></div>
+                <div class="resf"><label>Audience</label><select class="resin" id="prLevel"><option>LL.B. students</option><option>LL.M. students</option><option>UGC-NET aspirants</option><option>General audience</option></select></div>
+              </div>
+              <button class="btn pri" id="prGen" style="width:100%;justify-content:center">Generate slides</button>
+              <div class="hint" id="prHint" style="margin-top:10px">Uses Gemini. Every slide is editable after; export to PowerPoint (.pptx).</div>
+            </div>
+            <div class="resgrp" id="prSaved"></div>
+          </div>
+          <div class="resprevwrap"><div id="prSlides" style="width:100%;max-width:640px"><div class="ph" style="min-height:360px"><div class="pico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4h18v12H3zM12 16v4" stroke-linejoin="round"/></svg></div><h2>Your slides appear here</h2><p>Pick a note or type a topic, then Generate. Edit any slide, present full-screen, or export to PowerPoint.</p></div></div></div>
+        </div>
+      </div>
+    </section>
+    <section class="view" data-view="read">
+      <div class="readwrap">
+        <div class="readbar">
+          <select class="resin" id="rdLib" style="width:auto;max-width:220px" title="Library"></select>
+          <button class="btn" id="rdImport" title="Upload a .txt, .md or PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><path d="M12 15V4M8 8l4-4 4 4M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload</button>
+          <input type="file" id="rdFile" accept=".txt,.md,.pdf" style="display:none">
+          <button class="btn" id="rdPaste">Paste text</button>
+          <span class="spacer"></span>
+          <div class="seg" id="rdThemes">
+            <button class="seg-b on" data-rth="paper">Paper</button>
+            <button class="seg-b" data-rth="sepia">Sepia</button>
+            <button class="seg-b" data-rth="night">Night</button>
+          </div>
+          <button class="tbtn sq" id="rdMinus" title="Smaller text">A−</button>
+          <button class="tbtn sq" id="rdPlus" title="Larger text">A+</button>
+        </div>
+        <div class="readarea" id="rdArea">
+          <div class="readdoc" id="rdDoc"></div>
+        </div>
+      </div>
+      <div class="dictpop" id="dictPop" style="display:none"></div>
+    </section>
 
     <!-- RESUME BUILDER -->
     <section class="view" data-view="resume">
@@ -833,6 +995,33 @@
       <button class="btn" id="atsAgain" style="display:none">Check another</button>
       <button class="btn pri" id="atsRun">Analyse</button>
     </div>
+  </div>
+</div>
+
+<!-- PASTE MODAL (reading) -->
+<div class="modal" id="pasteModal">
+  <div class="sheet">
+    <h3>Paste text to read</h3>
+    <p>Paste a chapter, article or judgment. It’s added to your reading library on this device.</p>
+    <label>Title</label>
+    <input id="pasteTitle" placeholder="Title">
+    <label>Text</label>
+    <textarea id="pasteText" rows="8" placeholder="Paste the text here…"></textarea>
+    <div class="actions">
+      <button class="btn" id="pasteCancel">Cancel</button>
+      <button class="btn pri" id="pasteSave">Add to library</button>
+    </div>
+  </div>
+</div>
+
+<!-- PRESENT STAGE -->
+<div class="prstage" id="prStage">
+  <div class="slide" id="prStageSlide"></div>
+  <div class="prctl">
+    <button id="prStagePrev">‹ Prev</button>
+    <span class="prnum" id="prStageNum">1 / 1</span>
+    <button id="prStageNext">Next ›</button>
+    <button id="prStageExit">✕ Exit</button>
   </div>
 </div>
 
@@ -1935,6 +2124,288 @@
       saveResume();renderResumeEditor();renderResumePreview();hideToast();toast('Filled from “'+f.name+'” — review and tweak anything.');
     }catch(err){hideToast();toast(err&&err.nokey?'Add your free Gemini key first.':friendlyErr(err));}
   });
+
+  /* shared tolerant JSON extractor */
+  function jsonExtract(txt){
+    txt=(txt||'').trim().replace(/^```(json)?/i,'').replace(/```$/,'').trim();
+    var a=txt.indexOf('['),b=txt.indexOf('{');
+    var s=(b<0||(a>=0&&a<b))?a:b;
+    var e=Math.max(txt.lastIndexOf(']'),txt.lastIndexOf('}'));
+    if(s>=0&&e>s)txt=txt.slice(s,e+1);
+    return JSON.parse(txt);
+  }
+  function geminiText(data){return ((data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[]).map(function(p){return p.text||''}).join('');}
+
+  /* ========== FLASHCARDS ========== */
+  var CARD_SEED=[
+    {name:'Landmark cases',cards:[
+      {f:'Kesavananda Bharati v. State of Kerala (1973)',b:'Propounded the Basic Structure doctrine — Parliament cannot amend the Constitution so as to destroy its basic structure.'},
+      {f:'Maneka Gandhi v. Union of India (1978)',b:'Under Art.21, “procedure established by law” must be just, fair and reasonable; widened due process.'},
+      {f:'Golaknath v. State of Punjab (1967)',b:'Held Parliament could not abridge fundamental rights by amendment (later modified by Kesavananda).'},
+      {f:'Minerva Mills v. Union of India (1980)',b:'Struck down parts of the 42nd Amendment; the balance between FRs and DPSPs is part of the basic structure.'},
+      {f:'S.R. Bommai v. Union of India (1994)',b:'Secularism is basic structure; laid down limits on Art.356 President’s Rule, subject to judicial review.'},
+      {f:'Vishaka v. State of Rajasthan (1997)',b:'Laid down guidelines against sexual harassment at the workplace (later the POSH Act, 2013).'},
+      {f:'K.S. Puttaswamy v. Union of India (2017)',b:'Right to privacy is a fundamental right under Article 21.'},
+      {f:'Mohori Bibee v. Dharmodas Ghose (1903)',b:'An agreement with a minor is void ab initio.'},
+      {f:'Salomon v. Salomon & Co. Ltd. (1897)',b:'A company is a separate legal person, distinct from its members.'},
+      {f:'Carlill v. Carbolic Smoke Ball Co. (1893)',b:'A general offer can be accepted by conduct; advertisement can amount to a unilateral contract.'}
+    ]},
+    {name:'Legal maxims',cards:[
+      {f:'Audi alteram partem',b:'“Hear the other side” — a rule of natural justice.'},
+      {f:'Nemo judex in causa sua',b:'No one should be a judge in his own cause — rule against bias.'},
+      {f:'Actus non facit reum nisi mens sit rea',b:'An act is not guilty unless the mind is also guilty (actus reus + mens rea).'},
+      {f:'Ubi jus ibi remedium',b:'Where there is a right, there is a remedy.'},
+      {f:'Res ipsa loquitur',b:'“The thing speaks for itself” — used in negligence.'},
+      {f:'Ratio decidendi',b:'The legal principle/reason for a decision — the binding part of a judgment.'},
+      {f:'Obiter dicta',b:'Remarks said by the way — persuasive, not binding.'},
+      {f:'Stare decisis',b:'To stand by decided cases — the doctrine of precedent.'},
+      {f:'Ignorantia juris non excusat',b:'Ignorance of the law is no excuse.'},
+      {f:'Volenti non fit injuria',b:'To a willing person no injury is done — a defence in tort.'},
+      {f:'Caveat emptor',b:'Let the buyer beware.'},
+      {f:'Ejusdem generis',b:'“Of the same kind” — a rule of statutory interpretation.'}
+    ]},
+    {name:'Constitutional GK',cards:[
+      {f:'Which Article is the “heart and soul” of the Constitution?',b:'Article 32 — right to constitutional remedies (Dr B.R. Ambedkar).'},
+      {f:'How many Fundamental Duties are there now?',b:'Eleven (10 by the 42nd Amendment + 1 by the 86th).'},
+      {f:'Part IV of the Constitution deals with?',b:'Directive Principles of State Policy (Arts. 36–51).'},
+      {f:'Minimum age to be President of India?',b:'35 years (Article 58).'},
+      {f:'Which Schedule contains the anti-defection law?',b:'The Tenth Schedule (52nd Amendment, 1985).'},
+      {f:'Retirement age of a High Court judge?',b:'62 years (a Supreme Court judge: 65).'},
+      {f:'Which Article abolishes untouchability?',b:'Article 17.'},
+      {f:'Writ to produce a detained person before court?',b:'Habeas corpus.'}
+    ]}
+  ];
+  var decks=JSON.parse(LS.getItem('lex_cards')||'null');
+  if(!decks){decks=CARD_SEED.map(function(d,i){return {id:Date.now()+i,name:d.name,ts:Date.now(),cards:d.cards.map(function(c){return {f:c.f,b:c.b,known:false};})};});LS.setItem('lex_cards',JSON.stringify(decks));}
+  function saveCards(){LS.setItem('lex_cards',JSON.stringify(decks));}
+  function cardsPane(id){['cardsHome','cardsStudy','cardsEdit'].forEach(function(x){document.getElementById(x).style.display=x===id?'block':'none';});}
+  function renderDeckGrid(){
+    var g=$('#deckGrid');
+    if(!decks.length){g.innerHTML='<div class="exempty">No decks yet — create one or generate with Gemini.</div>';return;}
+    g.innerHTML='';
+    decks.forEach(function(d){
+      var known=d.cards.filter(function(c){return c.known;}).length,pct=d.cards.length?Math.round(known/d.cards.length*100):0;
+      var el=document.createElement('div');el.className='deckcard';
+      el.innerHTML='<button class="ddel" title="Delete deck">&times;</button><div class="dname"></div><div class="dcount">'+d.cards.length+' cards · '+known+' learned</div>'
+        +'<div class="dbar"><span style="width:'+pct+'%"></span></div><div class="dacts"><button class="btn pri dstudy">Study</button><button class="btn dedit">Edit</button></div>';
+      el.querySelector('.dname').textContent=d.name;
+      el.querySelector('.dstudy').onclick=function(){startStudy(d);};
+      el.querySelector('.dedit').onclick=function(){editDeck(d);};
+      el.querySelector('.ddel').onclick=function(){if(!confirm('Delete deck “'+d.name+'”?'))return;decks=decks.filter(function(x){return x.id!==d.id;});saveCards();renderDeckGrid();};
+      g.appendChild(el);
+    });
+  }
+  var CS2={deck:null,i:0,flip:false};
+  function startStudy(d){if(!d.cards.length){toast('Add some cards first.');editDeck(d);return;}CS2={deck:d,i:0,flip:false};cardsPane('cardsStudy');renderStudy();}
+  function renderStudy(){
+    var d=CS2.deck,c=d.cards[CS2.i];
+    $('#studyTitle').textContent=d.name;
+    var known=d.cards.filter(function(x){return x.known;}).length;
+    $('#studyProg').textContent='Card '+(CS2.i+1)+' / '+d.cards.length+' · '+known+' learned';
+    $('#cardFront').textContent=c.f;$('#cardFace2').textContent=c.b;
+    $('#flipCard').classList.toggle('flipped',CS2.flip);
+  }
+  function studyNext(){CS2.flip=false;CS2.i=(CS2.i+1)%CS2.deck.cards.length;renderStudy();}
+  $('#flipCard').onclick=function(){CS2.flip=!CS2.flip;$('#flipCard').classList.toggle('flipped',CS2.flip);};
+  $('#cardPrev').onclick=function(){CS2.flip=false;CS2.i=(CS2.i-1+CS2.deck.cards.length)%CS2.deck.cards.length;renderStudy();};
+  $('#cardKnown').onclick=function(){CS2.deck.cards[CS2.i].known=true;saveCards();studyNext();};
+  $('#cardAgain').onclick=function(){CS2.deck.cards[CS2.i].known=false;saveCards();studyNext();};
+  $('#cardBack').onclick=function(){cardsPane('cardsHome');renderDeckGrid();};
+  var CE={deck:null};
+  function editDeck(d){CE.deck=d;cardsPane('cardsEdit');$('#deckName').value=d.name;renderCardEdit();}
+  function renderCardEdit(){
+    var box=$('#cardEditList');box.innerHTML='';
+    CE.deck.cards.forEach(function(c,i){
+      var el=document.createElement('div');el.className='ceditrow';
+      el.innerHTML='<button class="cdel" title="Remove">&times;</button><textarea rows="2" data-f="f" placeholder="Front — question or term"></textarea><textarea rows="2" data-f="b" placeholder="Back — answer"></textarea>';
+      el.querySelector('[data-f="f"]').value=c.f;el.querySelector('[data-f="b"]').value=c.b;
+      el.querySelectorAll('textarea').forEach(function(t){t.oninput=function(){c[t.getAttribute('data-f')]=t.value;clearTimeout(CE._t);CE._t=setTimeout(saveCards,400);};});
+      el.querySelector('.cdel').onclick=function(){CE.deck.cards.splice(i,1);saveCards();renderCardEdit();};
+      box.appendChild(el);
+    });
+  }
+  $('#deckName').oninput=function(){if(CE.deck){CE.deck.name=this.value;clearTimeout(CE._t);CE._t=setTimeout(saveCards,400);}};
+  $('#cardAdd').onclick=function(){CE.deck.cards.push({f:'',b:'',known:false});saveCards();renderCardEdit();};
+  $('#cardEditBack').onclick=function(){cardsPane('cardsHome');renderDeckGrid();};
+  $('#cardNewDeck').onclick=function(){var d={id:Date.now(),name:'New deck',ts:Date.now(),cards:[{f:'',b:'',known:false}]};decks.unshift(d);saveCards();editDeck(d);$('#deckName').focus();};
+  async function genCardDeck(topic,n){
+    var pr='Create '+n+' flashcards to revise "'+topic+'" in the Indian legal context. Return ONLY a valid JSON array; each element {"f":"front — a concise question or term","b":"back — a short accurate answer (1-2 sentences)"}. Use real cases/sections; do not fabricate.';
+    var data=await geminiFetch({contents:[{role:'user',parts:[{text:pr}]}],generationConfig:{temperature:0.5,responseMimeType:'application/json'}});
+    var arr=jsonExtract(geminiText(data));
+    return (Array.isArray(arr)?arr:(arr.cards||[])).map(function(o){return {f:String(o.f||o.front||''),b:String(o.b||o.back||''),known:false};}).filter(function(c){return c.f&&c.b;});
+  }
+  $('#cardGenDeck').onclick=async function(){
+    var topic=prompt('Make flashcards on which topic?\n(e.g. “Doctrine of frustration” or “Landmark tort cases”)');
+    if(!topic)return;topic=topic.trim();if(!topic)return;
+    if(!getKey()){toast('Add your free Gemini key first.');$('#keyBtn').click();return;}
+    toast('Gemini is making your deck…',true);
+    try{
+      var cards=await genCardDeck(topic,12);hideToast();
+      if(!cards.length){toast('No cards came back — try again.');return;}
+      var deck={id:Date.now(),name:topic,ts:Date.now(),cards:cards};decks.unshift(deck);saveCards();renderDeckGrid();
+      toast('Created “'+topic+'” · '+cards.length+' cards.');
+    }catch(err){hideToast();toast(err&&err.nokey?'Add your free Gemini key first.':friendlyErr(err));}
+  };
+  renderDeckGrid();
+
+  /* ========== PRESENTATIONS ========== */
+  var PPTX_JS='https://cdnjs.cloudflare.com/ajax/libs/pptxgenjs/3.12.0/pptxgen.bundle.min.js';
+  var presos=JSON.parse(LS.getItem('lex_present')||'[]');
+  var prCur=null;
+  function savePresos(){LS.setItem('lex_present',JSON.stringify(presos));}
+  function fillPrNotes(){$('#prNote').innerHTML='<option value="">— none —</option>'+notes.map(function(n){return '<option value="'+n.id+'">'+esc(n.title||'Untitled note')+'</option>';}).join('');}
+  function prPersist(){if(!prCur)return;prCur.ts=Date.now();var ix=presos.map(function(p){return p.id;}).indexOf(prCur.id);if(ix>=0)presos[ix]=prCur;else presos.unshift(prCur);savePresos();renderPrSaved();}
+  function renderPrSlides(){
+    var box=$('#prSlides');
+    if(!prCur||!prCur.slides.length){box.innerHTML='<div class="ph" style="min-height:360px"><div class="pico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4h18v12H3zM12 16v4" stroke-linejoin="round"/></svg></div><h2>Your slides appear here</h2><p>Pick a note or type a topic, then Generate.</p></div>';$('#prPlay').style.display='none';$('#prPptx').style.display='none';return;}
+    $('#prPlay').style.display='';$('#prPptx').style.display='';
+    box.innerHTML=prCur.slides.map(function(sl,i){
+      return '<div class="prslide" data-i="'+i+'"><button class="psdel" title="Delete slide">&times;</button><div class="psn">Slide '+(i+1)+'</div>'
+        +'<div class="pst" contenteditable="true" data-k="title">'+esc(sl.title||'')+'</div>'
+        +'<ul>'+sl.bullets.map(function(b,j){return '<li contenteditable="true" data-j="'+j+'">'+esc(b)+'</li>';}).join('')+'</ul>'
+        +'<button class="psadd">+ bullet</button></div>';
+    }).join('');
+    box.querySelectorAll('.prslide').forEach(function(el){
+      var i=+el.getAttribute('data-i');
+      el.querySelector('[data-k="title"]').addEventListener('input',function(){prCur.slides[i].title=this.textContent;clearTimeout(prCur._t);prCur._t=setTimeout(prPersist,500);});
+      el.querySelectorAll('li[data-j]').forEach(function(li){li.addEventListener('input',function(){prCur.slides[i].bullets[+li.getAttribute('data-j')]=li.textContent;clearTimeout(prCur._t);prCur._t=setTimeout(prPersist,500);});});
+      el.querySelector('.psadd').onclick=function(){prCur.slides[i].bullets.push('New point');prPersist();renderPrSlides();};
+      el.querySelector('.psdel').onclick=function(){prCur.slides.splice(i,1);prPersist();renderPrSlides();};
+    });
+  }
+  function renderPrSaved(){
+    var box=$('#prSaved');if(!presos.length){box.innerHTML='';return;}
+    box.innerHTML='<div class="gh"><span>Saved decks</span></div>'+presos.map(function(p){
+      return '<div class="pr-saveitem" data-id="'+p.id+'"><span>'+esc(p.title||'Deck')+'</span><span class="m">'+(p.slides?p.slides.length:0)+' slides</span><button class="x" data-del="'+p.id+'">&times;</button></div>';
+    }).join('');
+    box.querySelectorAll('.pr-saveitem').forEach(function(el){el.onclick=function(ev){
+      if(ev.target.getAttribute('data-del')){var id=+ev.target.getAttribute('data-del');presos=presos.filter(function(x){return x.id!==id;});savePresos();renderPrSaved();return;}
+      var id=+el.getAttribute('data-id');var p=presos.filter(function(x){return x.id===id;})[0];if(p){prCur=p;$('#prTitle').value=p.title||'';renderPrSlides();}
+    };});
+  }
+  async function genSlides(title,content,n,level){
+    var pr='Create a teaching slide deck'+(title?' titled "'+title+'"':'')+' for '+level+' on this topic/content:\n"""\n'+content.slice(0,8000)+'\n"""\n'
+      +'Make exactly '+n+' slides. Return ONLY valid JSON: {"slides":[{"title":"slide title","bullets":["short point","short point"]}]}. Use 3-5 concise, projector-friendly bullets per slide. Start with a title/intro slide and end with a summary. Indian legal context; accurate cases/sections; no fabrication.';
+    var data=await geminiFetch({contents:[{role:'user',parts:[{text:pr}]}],generationConfig:{temperature:0.5,responseMimeType:'application/json'}});
+    var o=jsonExtract(geminiText(data));var arr=Array.isArray(o)?o:(o.slides||[]);
+    return arr.map(function(s){return {title:String(s.title||''),bullets:(s.bullets||s.points||[]).map(String).filter(Boolean)};}).filter(function(s){return s.title||s.bullets.length;});
+  }
+  $('#prGen').onclick=async function(){
+    var title=$('#prTitle').value.trim(),noteId=$('#prNote').value,content=$('#prTopic').value.trim();
+    if(noteId){var n=notes.filter(function(x){return x.id==noteId;})[0];if(n){content=plain(n.body);if(!title)title=n.title;}}
+    var src=content||title;var h=$('#prHint');h.classList.remove('err');
+    if(!src){h.classList.add('err');h.textContent='Pick a note or type a topic first.';return;}
+    if(!getKey()){h.classList.add('err');h.textContent='Add your free Gemini key first — the “Gemini key” button, top right.';return;}
+    var btn=this;btn.disabled=true;btn.textContent='Generating…';h.textContent='Gemini is building your deck…';
+    try{
+      var slides=await genSlides(title,src,+$('#prCount').value,$('#prLevel').value);
+      if(!slides.length)throw new Error('No slides came back — try again.');
+      prCur={id:Date.now(),title:title||(slides[0]&&slides[0].title)||'Presentation',slides:slides,ts:Date.now()};
+      prPersist();renderPrSlides();h.textContent='Done. Edit any slide, present, or export to PowerPoint.';
+    }catch(err){h.classList.add('err');h.textContent=err&&err.nokey?'Add your free Gemini key first.':friendlyErr(err);}
+    finally{btn.disabled=false;btn.textContent='Generate slides';}
+  };
+  var prStageI=0;
+  function renderStage(){var s=prCur.slides[prStageI];$('#prStageSlide').innerHTML='<h2>'+esc(s.title||'')+'</h2><ul>'+s.bullets.map(function(b){return '<li>'+esc(b)+'</li>';}).join('')+'</ul>';$('#prStageNum').textContent=(prStageI+1)+' / '+prCur.slides.length;}
+  function stageGo(d){prStageI=Math.max(0,Math.min(prCur.slides.length-1,prStageI+d));renderStage();}
+  function stageKeys(e){if(e.key==='ArrowRight'||e.key===' '){e.preventDefault();stageGo(1);}else if(e.key==='ArrowLeft'){stageGo(-1);}else if(e.key==='Escape'){closeStage();}}
+  function closeStage(){$('#prStage').classList.remove('on');document.removeEventListener('keydown',stageKeys);}
+  $('#prPlay').onclick=function(){if(!prCur||!prCur.slides.length)return;prStageI=0;$('#prStage').classList.add('on');renderStage();document.addEventListener('keydown',stageKeys);};
+  $('#prStagePrev').onclick=function(){stageGo(-1);};$('#prStageNext').onclick=function(){stageGo(1);};$('#prStageExit').onclick=closeStage;
+  $('#prPptx').onclick=async function(){
+    if(!prCur||!prCur.slides.length)return;
+    toast('Preparing PowerPoint…',true);
+    try{
+      await loadScript(PPTX_JS);
+      var P=new window.PptxGenJS();P.defineLayout({name:'W',width:10,height:5.63});P.layout='W';
+      prCur.slides.forEach(function(s,i){
+        var sl=P.addSlide();
+        sl.addText(s.title||('Slide '+(i+1)),{x:0.5,y:0.35,w:9,h:0.9,fontSize:26,bold:true,color:'8C2F43',fontFace:'Georgia'});
+        if(s.bullets&&s.bullets.length)sl.addText(s.bullets.map(function(b){return {text:b,options:{bullet:true}};}),{x:0.7,y:1.5,w:8.6,h:3.6,fontSize:18,color:'222222',fontFace:'Calibri',lineSpacingMultiple:1.2,valign:'top'});
+      });
+      await P.writeFile({fileName:(prCur.title||'presentation').replace(/[^\w]+/g,'_')+'.pptx'});
+      hideToast();toast('Exported PowerPoint (.pptx).');
+    }catch(err){hideToast();toast('Couldn’t export — the PowerPoint library needs an internet connection.');}
+  };
+  fillPrNotes();renderPrSaved();renderPrSlides();
+  var prNav=document.querySelector('#nav button[data-v="present"]');if(prNav)prNav.addEventListener('click',fillPrNotes);
+
+  /* ========== READING CORNER ========== */
+  var READ_BUILTIN=[
+    {id:'b_preamble',title:'Preamble to the Constitution of India',by:'Constitution of India · public document',text:'WE, THE PEOPLE OF INDIA, having solemnly resolved to constitute India into a SOVEREIGN SOCIALIST SECULAR DEMOCRATIC REPUBLIC and to secure to all its citizens:\n\nJUSTICE, social, economic and political;\n\nLIBERTY of thought, expression, belief, faith and worship;\n\nEQUALITY of status and of opportunity;\n\nand to promote among them all\n\nFRATERNITY assuring the dignity of the individual and the unity and integrity of the Nation;\n\nIN OUR CONSTITUENT ASSEMBLY this twenty-sixth day of November, 1949, do HEREBY ADOPT, ENACT AND GIVE TO OURSELVES THIS CONSTITUTION.'},
+    {id:'b_udhr',title:'Universal Declaration of Human Rights (excerpt)',by:'United Nations, 1948',text:'Article 1\nAll human beings are born free and equal in dignity and rights. They are endowed with reason and conscience and should act towards one another in a spirit of brotherhood.\n\nArticle 2\nEveryone is entitled to all the rights and freedoms set forth in this Declaration, without distinction of any kind, such as race, colour, sex, language, religion, political or other opinion, national or social origin, property, birth or other status.\n\nArticle 3\nEveryone has the right to life, liberty and security of person.\n\nArticle 5\nNo one shall be subjected to torture or to cruel, inhuman or degrading treatment or punishment.\n\nArticle 7\nAll are equal before the law and are entitled without any discrimination to equal protection of the law.'},
+    {id:'b_fox',title:'The Fox and the Grapes',by:'Aesop · public domain',text:'A hungry Fox saw some fine bunches of Grapes hanging from a vine that was trained along a high trellis, and did his best to reach them by jumping as high as he could into the air. But it was all in vain, for they were just out of reach: so he gave up trying, and walked away with an air of dignity and unconcern, remarking, “I thought those Grapes were ripe, but I see now they are quite sour.”'}
+  ];
+  var readingUser=JSON.parse(LS.getItem('lex_reading')||'[]');
+  var readPrefs=JSON.parse(LS.getItem('lex_read_prefs')||'{}');
+  if(!readPrefs.theme)readPrefs.theme='paper';if(!readPrefs.size)readPrefs.size=18;if(!readPrefs.last)readPrefs.last='b_preamble';
+  function saveReading(){LS.setItem('lex_reading',JSON.stringify(readingUser));}
+  function saveReadPrefs(){LS.setItem('lex_read_prefs',JSON.stringify(readPrefs));}
+  function readAll(){return READ_BUILTIN.concat(readingUser);}
+  function fillRdLib(){
+    $('#rdLib').innerHTML=READ_BUILTIN.map(function(d){return '<option value="'+d.id+'">'+esc(d.title)+'</option>';}).join('')
+      +(readingUser.length?('<optgroup label="Your library">'+readingUser.map(function(d){return '<option value="'+escA(d.id)+'">'+esc(d.title)+'</option>';}).join('')+'</optgroup>'):'');
+  }
+  function openReading(id){
+    var d=readAll().filter(function(x){return x.id==id;})[0]||readAll()[0];if(!d)return;
+    readPrefs.last=d.id;saveReadPrefs();
+    var doc=$('#rdDoc');
+    doc.innerHTML='<span class="rdtitle">'+esc(d.title)+'</span>'+(d.by?'<span class="rdby">'+esc(d.by)+'</span>':'')+esc(d.text);
+    doc.style.fontSize=readPrefs.size+'px';
+    $('#rdArea').setAttribute('data-rth',readPrefs.theme);$('#rdArea').scrollTop=0;
+    $('#rdLib').value=d.id;
+    document.querySelectorAll('#rdThemes [data-rth]').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-rth')===readPrefs.theme);});
+  }
+  $('#rdLib').addEventListener('change',function(){openReading(this.value);});
+  document.querySelectorAll('#rdThemes [data-rth]').forEach(function(b){b.onclick=function(){
+    document.querySelectorAll('#rdThemes [data-rth]').forEach(function(x){x.classList.toggle('on',x===b);});
+    readPrefs.theme=b.getAttribute('data-rth');saveReadPrefs();$('#rdArea').setAttribute('data-rth',readPrefs.theme);
+  };});
+  $('#rdPlus').onclick=function(){readPrefs.size=Math.min(30,readPrefs.size+1);saveReadPrefs();$('#rdDoc').style.fontSize=readPrefs.size+'px';};
+  $('#rdMinus').onclick=function(){readPrefs.size=Math.max(13,readPrefs.size-1);saveReadPrefs();$('#rdDoc').style.fontSize=readPrefs.size+'px';};
+  $('#rdImport').onclick=function(){$('#rdFile').click();};
+  $('#rdFile').addEventListener('change',async function(e){
+    var f=e.target.files&&e.target.files[0];if(!f)return;e.target.value='';
+    var ext=(f.name.split('.').pop()||'').toLowerCase(),name=f.name.replace(/\.[^.]+$/,'');
+    toast('Reading '+f.name+'…',true);
+    try{
+      var text;if(ext==='pdf')text=await extractPdf(await readBuf(f));else text=await readTxt(f);
+      if(!text){hideToast();toast('No readable text found — the file may be a scanned image.');return;}
+      var d={id:'u'+Date.now(),title:name,by:'Your upload',text:text};readingUser.unshift(d);saveReading();fillRdLib();openReading(d.id);hideToast();toast('Added “'+name+'”.');
+    }catch(err){hideToast();toast((err&&err.message)||'Couldn’t read that file.');}
+  });
+  $('#rdPaste').onclick=function(){$('#pasteTitle').value='';$('#pasteText').value='';$('#pasteModal').classList.add('on');$('#pasteTitle').focus();};
+  $('#pasteCancel').onclick=function(){$('#pasteModal').classList.remove('on');};
+  $('#pasteModal').addEventListener('click',function(e){if(e.target===$('#pasteModal'))$('#pasteModal').classList.remove('on');});
+  $('#pasteSave').onclick=function(){
+    var t=$('#pasteText').value.trim();if(!t){toast('Paste some text first.');return;}
+    var d={id:'u'+Date.now(),title:$('#pasteTitle').value.trim()||'Pasted text',by:'Pasted',text:t};readingUser.unshift(d);saveReading();fillRdLib();openReading(d.id);$('#pasteModal').classList.remove('on');toast('Added to your library.');
+  };
+  function positionPop(pop,rect){
+    var pw=Math.min(320,window.innerWidth-20),left=(rect.left||100),top=(rect.bottom||100)+8;
+    if(left+pw>window.innerWidth-10)left=window.innerWidth-pw-10;if(left<10)left=10;
+    if(top+190>window.innerHeight)top=Math.max(10,(rect.top||100)-196);
+    pop.style.left=left+'px';pop.style.top=top+'px';
+  }
+  async function lookupWord(word,rect){
+    var pop=$('#dictPop');pop.style.display='block';
+    pop.innerHTML='<button class="dx">&times;</button><div class="dw">'+esc(word)+'</div><div class="dph">Looking up…</div>';positionPop(pop,rect);
+    pop.querySelector('.dx').onclick=function(){pop.style.display='none';};
+    try{
+      var res=await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/'+encodeURIComponent(word.toLowerCase()));
+      if(!res.ok)throw 0;var entry=(await res.json())[0];
+      var h='<button class="dx">&times;</button><div class="dw">'+esc(entry.word||word)+'</div>'+(entry.phonetic?'<div class="dph">'+esc(entry.phonetic)+'</div>':'');
+      (entry.meanings||[]).slice(0,3).forEach(function(m){h+='<div class="dpos">'+esc(m.partOfSpeech||'')+'</div><div class="dmean">'+esc((m.definitions&&m.definitions[0]&&m.definitions[0].definition)||'')+'</div>';});
+      pop.innerHTML=h;positionPop(pop,rect);pop.querySelector('.dx').onclick=function(){pop.style.display='none';};
+    }catch(e){pop.innerHTML='<button class="dx">&times;</button><div class="dw">'+esc(word)+'</div><div class="dmean">No definition found (this needs an internet connection).</div>';pop.querySelector('.dx').onclick=function(){pop.style.display='none';};}
+  }
+  $('#rdDoc').addEventListener('dblclick',function(){
+    var sel=window.getSelection(),w=((sel&&sel.toString())||'').trim().replace(/[^A-Za-z'\-]/g,'');
+    if(!w)return;var rect;try{rect=sel.getRangeAt(0).getBoundingClientRect();}catch(e){rect={left:window.innerWidth/2,bottom:120,top:100};}
+    lookupWord(w,rect);
+  });
+  document.addEventListener('click',function(e){var pop=$('#dictPop');if(pop&&pop.style.display==='block'&&!pop.contains(e.target)&&!(e.target.closest&&e.target.closest('#rdDoc')))pop.style.display='none';});
+  fillRdLib();openReading(readPrefs.last);
 
   /* init */
   refreshKeydot();renderAll();renderExHome();initResume();
