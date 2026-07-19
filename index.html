@@ -1,0 +1,1944 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lex — study companion</title>
+<style>
+  :root{
+    --bg:#ECE9E2; --surface:#FCFBF8; --surface-2:#F4F2EB; --surface-3:#ECE9E0;
+    --ink:#28251F; --ink-soft:#5E594F; --muted:#948E82; --line:#E2DED4; --line-soft:#EDEAE1;
+    --accent:#933a4e; --accent-ink:#8C2F43; --accent-bg:#F6E7E4; --accent-line:#E8D0CD;
+    --brass:#9A7B41; --good:#2E7D5B; --good-bg:#E4F0E9; --warn:#B07818; --danger:#B23A48;
+    --font-serif:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua",Georgia,serif;
+    --font-sans:system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    --font-mono:ui-monospace,"Cascadia Mono",Consolas,Menlo,monospace;
+    --r:11px; --r-lg:16px; --shadow:0 1px 2px rgba(40,37,31,.05),0 10px 30px rgba(40,37,31,.08);
+  }
+  :root[data-theme="dark"]{
+    --bg:#15161D; --surface:#1E202A; --surface-2:#262935; --surface-3:#30333F;
+    --ink:#EAEBEF; --ink-soft:#ACB1BE; --muted:#7E8391; --line:#31343F; --line-soft:#25272F;
+    --accent:#C25A6E; --accent-ink:#E7A0AD; --accent-bg:#2E1F24; --accent-line:#472D34;
+    --brass:#CBA566; --good:#5FB894; --good-bg:#182A24; --warn:#D9A544; --danger:#DC7580;
+    --shadow:0 1px 2px rgba(0,0,0,.3),0 12px 34px rgba(0,0,0,.42);
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;font-family:var(--font-sans);color:var(--ink);background:var(--bg);
+       -webkit-font-smoothing:antialiased;overflow:hidden}
+  button{font-family:inherit}
+  ::-webkit-scrollbar{width:10px;height:10px}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:10px;border:3px solid var(--bg)}
+
+  .app{display:flex;height:100vh}
+  /* rail */
+  .rail{width:210px;flex-shrink:0;border-right:1px solid var(--line);background:var(--surface);
+        display:flex;flex-direction:column;padding:16px 12px}
+  .brand{display:flex;align-items:center;gap:10px;padding:2px 6px 14px;border-bottom:1px solid var(--line-soft);margin-bottom:10px}
+  .mark{width:32px;height:32px;border-radius:9px;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .mark svg{width:18px;height:18px}
+  .word{font-family:var(--font-serif);font-size:20px;font-weight:600}
+  .word small{display:block;font-family:var(--font-sans);font-size:9.5px;font-weight:500;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-top:-2px}
+  .nav{display:flex;flex-direction:column;gap:1px;flex:1;overflow:auto}
+  .nav button{display:flex;align-items:center;gap:11px;padding:9px 11px;border:none;background:none;border-radius:8px;font-size:13.5px;color:var(--ink-soft);cursor:pointer;text-align:left;width:100%}
+  .nav button:hover{background:var(--surface-2);color:var(--ink)}
+  .nav button.on{background:var(--accent-bg);color:var(--accent-ink);font-weight:500}
+  .nav .ico{width:18px;height:18px;flex-shrink:0}
+  .nav .ico svg{width:100%;height:100%;stroke-width:1.7}
+  .prof{margin-top:8px;border:1px solid var(--line);border-radius:var(--r);padding:11px;background:var(--surface-2);position:relative}
+  .prof .av{width:34px;height:34px;border-radius:50%;background:var(--accent);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:600;font-family:var(--font-serif);margin-bottom:7px}
+  .prof [contenteditable]{outline:none;border-radius:4px;padding:1px 3px;margin:-1px -3px}
+  .prof [contenteditable]:hover{background:var(--surface-3)}
+  .prof [contenteditable]:focus{background:var(--accent-bg)}
+  .pn{font-size:13px;font-weight:600;font-family:var(--font-serif)}
+  .pq{font-size:11px;color:var(--ink-soft);margin-top:2px}
+  .pd{font-size:11px;color:var(--muted);margin-top:1px}
+
+  .main{flex:1;min-width:0;display:flex;flex-direction:column}
+  .top{display:flex;align-items:center;gap:10px;padding:11px 18px;border-bottom:1px solid var(--line);background:var(--surface)}
+  .top .ttl{font-family:var(--font-serif);font-size:16px;font-weight:600}
+  .tbtn{height:34px;padding:0 12px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);cursor:pointer;display:inline-flex;align-items:center;gap:7px;font-size:12.5px}
+  .tbtn:hover{background:var(--surface-2);color:var(--ink)}
+  .tbtn svg{width:15px;height:15px}
+  .tbtn.sq{width:34px;padding:0;justify-content:center}
+  .spacer{margin-left:auto}
+  .keydot{width:8px;height:8px;border-radius:50%;background:var(--danger)}
+  .keydot.ok{background:var(--good)}
+
+  .view{flex:1;min-height:0;display:none}
+  .view.on{display:flex}
+
+  /* ---- NOTES: 3 panes ---- */
+  .notes{display:grid;grid-template-columns:230px 1fr 340px;flex:1;min-height:0}
+  .pane{min-height:0;display:flex;flex-direction:column;overflow:hidden}
+  .list{border-right:1px solid var(--line);background:var(--surface)}
+  .list .lh{padding:12px 14px;display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line-soft)}
+  .list .lh input{flex:1;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:7px 10px;font-size:12.5px;color:var(--ink);outline:none}
+  .newbtn{width:34px;height:34px;flex-shrink:0;border-radius:9px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-size:19px;line-height:1}
+  .newbtn:hover{filter:brightness(1.07)}
+  .items{overflow:auto;flex:1;padding:6px}
+  .item{padding:10px 11px;border-radius:9px;cursor:pointer;margin-bottom:2px}
+  .item:hover{background:var(--surface-2)}
+  .item.on{background:var(--accent-bg)}
+  .item .it{font-size:13px;font-weight:500;color:var(--ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .item.on .it{color:var(--accent-ink)}
+  .item .ip{font-size:11px;color:var(--muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px}
+  .empty{color:var(--muted);font-size:12.5px;text-align:center;padding:30px 16px}
+
+  .editor{background:var(--bg)}
+  .ehead{padding:16px 26px 10px;border-bottom:1px solid var(--line-soft);background:var(--surface)}
+  .etitle{font-family:var(--font-serif);font-size:24px;font-weight:600;border:none;background:none;width:100%;color:var(--ink);outline:none}
+  .etitle::placeholder{color:var(--muted)}
+  .emeta{display:flex;align-items:center;gap:10px;margin-top:6px;font-size:11.5px;color:var(--muted)}
+  .emeta button{border:none;background:none;color:var(--muted);cursor:pointer;font-size:11.5px;display:inline-flex;align-items:center;gap:4px}
+  .emeta button:hover{color:var(--danger)}
+  .emeta svg{width:13px;height:13px}
+  .ebody{flex:1;overflow:auto;padding:20px 26px 60px;font-size:15px;line-height:1.8;color:var(--ink);outline:none;background:var(--surface)}
+  .ebody:empty:before{content:attr(data-ph);color:var(--muted)}
+  .ebody h2,.ebody h3{font-family:var(--font-serif)}
+
+  /* ---- BOT pane ---- */
+  .bot{border-left:1px solid var(--line);background:var(--surface)}
+  .both{padding:13px 15px;border-bottom:1px solid var(--line-soft);display:flex;align-items:center;gap:9px}
+  .both .bi{width:28px;height:28px;border-radius:8px;background:var(--accent-bg);color:var(--accent-ink);display:flex;align-items:center;justify-content:center}
+  .both .bi svg{width:16px;height:16px}
+  .both .bt{font-size:13.5px;font-weight:600}
+  .both .bs{font-size:11px;color:var(--muted)}
+  .thread{flex:1;overflow:auto;padding:14px;display:flex;flex-direction:column;gap:11px}
+  .bwelcome{color:var(--ink-soft);font-size:12.5px;line-height:1.6;background:var(--surface-2);border:1px solid var(--line-soft);border-radius:11px;padding:12px 13px}
+  .bwelcome b{color:var(--ink)}
+  .msg{font-size:13px;line-height:1.6;border-radius:12px;padding:10px 12px;max-width:96%}
+  .msg.u{background:var(--accent);color:#fff;align-self:flex-end;border-bottom-right-radius:4px}
+  .msg.a{background:var(--surface-2);border:1px solid var(--line-soft);align-self:flex-start;border-bottom-left-radius:4px}
+  .msg.a b{color:var(--ink)} .msg.a em{color:var(--accent-ink);font-family:var(--font-serif)}
+  .msg.a ul{margin:6px 0;padding-left:18px} .msg.a li{margin:2px 0}
+  .msg.err{background:var(--accent-bg);border-color:var(--accent-line);color:var(--accent-ink)}
+  .insert{margin-top:8px;font-size:11px;color:var(--accent-ink);background:none;border:1px solid var(--accent-line);border-radius:7px;padding:4px 9px;cursor:pointer;display:inline-flex;gap:5px;align-items:center}
+  .insert svg{width:12px;height:12px}
+  .thinking{display:flex;gap:5px;align-self:flex-start;padding:12px}
+  .thinking span{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:bl 1.2s infinite}
+  .thinking span:nth-child(2){animation-delay:.2s}.thinking span:nth-child(3){animation-delay:.4s}
+  @keyframes bl{0%,60%,100%{opacity:.25}30%{opacity:1}}
+  .topics{padding:11px 14px;border-top:1px solid var(--line-soft)}
+  .topics .th{font-size:10.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--brass);font-weight:600;margin-bottom:9px}
+  .tchips{display:flex;flex-wrap:wrap;gap:6px;max-height:118px;overflow:auto}
+  .tchip{font-size:11.5px;padding:5px 10px;border-radius:16px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-soft);cursor:pointer}
+  .tchip:hover{border-color:var(--accent-line);color:var(--accent-ink);background:var(--accent-bg)}
+  .askbar{padding:12px 14px;border-top:1px solid var(--line-soft);display:flex;gap:8px}
+  .askbar textarea{flex:1;resize:none;border:1px solid var(--line);background:var(--surface-2);border-radius:10px;padding:9px 11px;font-family:inherit;font-size:12.5px;color:var(--ink);outline:none;max-height:90px;line-height:1.4}
+  .askbar textarea:focus{border-color:var(--accent-line)}
+  .sendbtn{width:38px;flex-shrink:0;border:none;border-radius:10px;background:var(--accent);color:#fff;cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .sendbtn:disabled{opacity:.5;cursor:default}
+  .sendbtn svg{width:17px;height:17px}
+
+  /* placeholder views */
+  .ph{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:40px;color:var(--ink-soft)}
+  .ph .pico{width:52px;height:52px;border-radius:14px;background:var(--accent-bg);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;margin-bottom:16px}
+  .ph .pico svg{width:26px;height:26px}
+  .ph h2{font-family:var(--font-serif);font-size:22px;margin:0 0 6px;color:var(--ink)}
+  .ph p{font-size:13.5px;max-width:340px;margin:0}
+
+  /* modal */
+  .modal{position:fixed;inset:0;background:rgba(10,12,18,.5);display:none;align-items:center;justify-content:center;z-index:50}
+  .modal.on{display:flex}
+  .sheet{background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);width:440px;max-width:92vw;padding:22px 24px}
+  .sheet h3{font-family:var(--font-serif);font-size:19px;margin:0 0 4px}
+  .sheet p{font-size:12.5px;color:var(--ink-soft);margin:0 0 16px;line-height:1.55}
+  .sheet a{color:var(--accent-ink)}
+  .sheet label{font-size:11.5px;font-weight:600;color:var(--ink-soft);display:block;margin:12px 0 6px}
+  .sheet input,.sheet select{width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:9px;padding:10px 12px;font-family:inherit;font-size:13px;color:var(--ink);outline:none}
+  .sheet input:focus{border-color:var(--accent-line)}
+  .sheet .actions{display:flex;gap:9px;justify-content:flex-end;margin-top:20px}
+  .btn{font-size:13px;font-weight:500;padding:9px 16px;border-radius:9px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+  .btn:hover{background:var(--surface-2)}
+  .btn.pri{background:var(--accent);color:#fff;border-color:transparent}
+  .hint{font-size:11.5px;color:var(--muted);margin-top:9px;line-height:1.5}
+  .hint.err{color:var(--danger);background:var(--accent-bg);border:1px solid var(--accent-line);border-radius:9px;padding:9px 11px;margin-top:12px}
+  .iconbtn{width:34px;height:34px;flex-shrink:0;border-radius:9px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-soft);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .iconbtn:hover{color:var(--accent-ink);border-color:var(--accent-line);background:var(--accent-bg)}
+  .iconbtn svg{width:16px;height:16px}
+  .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(8px);background:var(--ink);color:var(--surface);padding:11px 18px;border-radius:11px;font-size:13px;box-shadow:var(--shadow);z-index:80;opacity:0;transition:opacity .2s,transform .2s;pointer-events:none;max-width:80vw;text-align:center}
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+
+  /* ---- EXAM / UGC-NET ---- */
+  .exwrap{flex:1;overflow:auto;padding:26px 30px;width:100%}
+  .expane{max-width:940px;margin:0 auto}
+  .exeyebrow{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);font-weight:600;margin:0 0 8px}
+  .exh1{font-family:var(--font-serif);font-size:27px;font-weight:600;margin:0 0 4px}
+  .exlead{color:var(--ink-soft);font-size:14px;margin:0 0 22px;max-width:560px}
+  .exgrid3{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:22px}
+  .exact{display:flex;gap:12px;align-items:flex-start;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:15px;cursor:pointer;color:var(--ink)}
+  .exact:hover{border-color:var(--accent-line)}
+  .exact .ei{width:34px;height:34px;border-radius:9px;background:var(--accent-bg);color:var(--accent-ink);display:flex;align-items:center;justify-content:center;flex-shrink:0}
+  .exact .ei svg{width:18px;height:18px}
+  .exact>span:last-child{display:flex;flex-direction:column;min-width:0}
+  .exact .eh{font-size:13.5px;font-weight:600;display:block}
+  .exact .ed{font-size:11.5px;color:var(--ink-soft);margin-top:3px;display:block;line-height:1.4}
+  .excols{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .excard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:18px 20px}
+  .exlabel{font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--brass);font-weight:600;margin-bottom:14px}
+  .exbarrow{display:flex;justify-content:space-between;font-size:12.5px;color:var(--ink-soft);margin-top:13px}
+  .exbarrow:first-child{margin-top:0}
+  .exbar{height:7px;border-radius:20px;background:var(--surface-3);overflow:hidden;margin-top:6px}
+  .exbar>span{display:block;height:100%;background:var(--accent);border-radius:20px}
+  .exli{display:flex;align-items:center;gap:10px;padding:9px 0;border-top:1px solid var(--line-soft);font-size:13px}
+  .exli:first-child{border-top:none}
+  .exli .m{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--ink-soft)}
+  .exempty{color:var(--muted);font-size:12.5px;padding:6px 0}
+  .exhead{display:flex;gap:14px;align-items:center;background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:13px 18px;margin-bottom:16px}
+  .extimer{font-family:var(--font-mono);font-size:19px;font-weight:600;font-variant-numeric:tabular-nums}
+  .extimer.warn{color:var(--danger)}
+  .extest{display:grid;grid-template-columns:1fr 200px;gap:18px}
+  .exq{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:22px 24px}
+  .exqn{font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--brass);font-weight:600}
+  .exqt{font-size:16px;line-height:1.6;margin:8px 0 18px;font-weight:500}
+  .exopt{display:flex;gap:12px;align-items:flex-start;padding:12px 14px;border:1px solid var(--line);border-radius:var(--r);margin-bottom:9px;cursor:pointer;font-size:14px}
+  .exopt:hover{border-color:var(--accent-line)}
+  .exopt.sel{border-color:var(--accent);background:var(--accent-bg)}
+  .exopt .k{width:24px;height:24px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;flex-shrink:0;font-family:var(--font-serif)}
+  .exopt.sel .k{background:var(--accent);color:#fff;border-color:transparent}
+  .exopt.correct{border-color:var(--good);background:var(--good-bg)}
+  .exopt.correct .k{background:var(--good);color:#fff;border-color:transparent}
+  .exopt.wrong{border-color:var(--danger);background:var(--accent-bg)}
+  .exopt.wrong .k{background:var(--danger);color:#fff;border-color:transparent}
+  .exopt.rev{cursor:default}
+  .expalette{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:16px;height:fit-content}
+  .exptitle{font-size:12px;font-weight:600;margin-bottom:12px;color:var(--ink-soft)}
+  .expgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:7px}
+  .expgrid button{aspect-ratio:1;border:1px solid var(--line);border-radius:7px;background:var(--surface);font-family:var(--font-mono);font-size:12px;color:var(--ink-soft);cursor:pointer}
+  .expgrid button.ans{background:var(--good-bg);border-color:transparent;color:var(--good)}
+  .expgrid button.mark{background:var(--warn);color:#fff;border-color:transparent}
+  .expgrid button.cur{outline:2px solid var(--accent);outline-offset:-1px;color:var(--accent-ink);font-weight:700}
+  .exlegend{display:flex;flex-direction:column;gap:6px;margin-top:14px;font-size:11.5px;color:var(--ink-soft)}
+  .exlegend span{display:flex;align-items:center;gap:7px}
+  .exdot{width:11px;height:11px;border-radius:3px;border:1px solid var(--line)}
+  .exnav{display:flex;justify-content:space-between;margin-top:18px;gap:8px}
+  .exscore{display:flex;gap:26px;align-items:center;flex-wrap:wrap}
+  .exring{width:120px;height:120px;flex-shrink:0}
+  .exrs{display:flex;gap:24px;flex-wrap:wrap}
+  .exrs .n{font-family:var(--font-serif);font-size:24px;font-weight:600}
+  .exrs .l{font-size:12px;color:var(--ink-soft)}
+  .exrevq{border-top:1px solid var(--line-soft);padding:15px 0}
+  .exrevq:first-child{border-top:none}
+  .exrq{font-size:13.5px;font-weight:500;margin-bottom:9px}
+  .exexp{font-size:12.5px;color:var(--ink-soft);background:var(--surface-2);border-radius:8px;padding:9px 11px;margin-top:6px;line-height:1.55}
+  .exexp b{color:var(--good)}
+  .sheet textarea{width:100%;border:1px solid var(--line);background:var(--surface-2);border-radius:9px;padding:10px 12px;font-family:inherit;font-size:12.5px;color:var(--ink);outline:none;resize:vertical;line-height:1.45}
+  .sheet textarea:focus{border-color:var(--accent-line)}
+  .sheet .rowflds{display:flex;gap:10px}
+  .sheet .rowflds>div{flex:1}
+  .sheet.wide{width:600px}
+  .ats-body{max-height:56vh;overflow:auto;margin:2px -4px 0;padding:0 4px}
+  .ats-score{display:flex;align-items:center;gap:14px;margin:2px 0 6px;padding:12px 14px;border:1px solid var(--line);border-radius:12px;background:var(--surface-2)}
+  .ats-num{font-family:var(--font-serif);font-size:30px;font-weight:bold;line-height:1;min-width:76px;text-align:center}
+  .ats-num small{font-size:14px;color:var(--muted);font-weight:normal}
+  .ats-bar{flex:1}
+  .ats-bar .track{height:9px;border-radius:6px;background:var(--surface-3);overflow:hidden}
+  .ats-bar .fill{height:100%;border-radius:6px;transition:width .5s}
+  .ats-bar .cap{font-size:11.5px;color:var(--ink-soft);margin-top:6px}
+  .ats-h{font-size:11.5px;font-weight:600;color:var(--ink-soft);margin:15px 0 8px}
+  .ats-chips{display:flex;flex-wrap:wrap;gap:6px}
+  .ats-chip{font-size:11.5px;padding:4px 10px;border-radius:14px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-soft)}
+  .ats-chip.miss{border-color:var(--accent-line);background:var(--accent-bg);color:var(--accent-ink);cursor:pointer}
+  .ats-chip.miss:hover{border-color:var(--danger)}
+  .ats-chip.match{border-color:var(--good);background:var(--good-bg);color:var(--good)}
+  .ats-sug{margin:0;padding-left:18px;font-size:12.5px;color:var(--ink-soft);line-height:1.6}
+  .ats-sug li{margin-bottom:4px}
+  @media (max-width:900px){.exgrid3{grid-template-columns:1fr}.excols{grid-template-columns:1fr}.extest{grid-template-columns:1fr}.expalette{order:-1}}
+
+  /* ---- RESUME BUILDER ---- */
+  .reswrap{flex:1;min-height:0;display:flex;flex-direction:column;padding:20px 24px 0}
+  .restop{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+  .restop .rt{font-family:var(--font-serif);font-size:24px;font-weight:600;margin-top:2px}
+  .resactions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+  .resgrid{flex:1;min-height:0;display:grid;grid-template-columns:1fr 1fr;gap:18px;padding-bottom:20px}
+  .resedit{overflow:auto;padding-right:8px}
+  .resprevwrap{overflow:auto;background:var(--surface-2);border-radius:14px;padding:20px;display:flex;justify-content:center;align-items:flex-start}
+  .respage{background:#fff;width:100%;max-width:580px;min-height:760px;padding:40px 44px;border-radius:4px;box-shadow:0 2px 16px rgba(0,0,0,.14);color:#1a1a1a}
+  .resgrp{margin-bottom:18px}
+  .resgrp>.gh{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--brass);font-weight:600;margin-bottom:10px;display:flex;justify-content:space-between;align-items:center;gap:8px}
+  .resf{margin-bottom:9px}
+  .resf label{font-size:11px;color:var(--ink-soft);display:block;margin-bottom:4px}
+  .resin{width:100%;border:1px solid var(--line);background:var(--surface);border-radius:8px;padding:8px 10px;font-family:inherit;font-size:13px;color:var(--ink);outline:none}
+  .resin:focus{border-color:var(--accent-line)}
+  textarea.resin{resize:vertical;line-height:1.45}
+  .res2{display:flex;gap:8px}.res2>div{flex:1;min-width:0}
+  .resrow{border:1px solid var(--line);border-radius:10px;padding:12px 12px 3px;margin-bottom:9px;position:relative;background:var(--surface-2)}
+  .resdel{position:absolute;top:7px;right:9px;border:none;background:none;color:var(--muted);cursor:pointer;font-size:18px;line-height:1}
+  .resdel:hover{color:var(--danger)}
+  .resaddbtn{font-size:12px;color:var(--accent-ink);background:none;border:1px dashed var(--accent-line);border-radius:8px;padding:5px 11px;cursor:pointer}
+  .resaddbtn:hover{background:var(--accent-bg)}
+  @media (max-width:900px){.resgrid{grid-template-columns:1fr}}
+  @media print{
+    body{overflow:visible!important;background:#fff!important}
+    body *{visibility:hidden!important}
+    #resPreview,#resPreview *{visibility:visible!important}
+    #resPreview{position:absolute!important;left:0;top:0;width:100%;max-width:none!important;min-height:0!important;box-shadow:none!important;border-radius:0!important;padding:0!important}
+    @page{margin:16mm}
+  }
+
+  @media (max-width:1000px){
+    .notes{grid-template-columns:1fr}
+    .list,.bot{display:none}
+  }
+
+  /* ---- shared: segmented toggle ---- */
+  .seg{display:inline-flex;background:var(--surface-2);border:1px solid var(--line);border-radius:9px;padding:3px}
+  .seg-b{border:none;background:none;padding:6px 14px;border-radius:7px;font-size:12.5px;color:var(--ink-soft);cursor:pointer}
+  .seg-b.on{background:var(--surface);color:var(--accent-ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.06)}
+
+  /* ---- NOTES: mode bar + toolbar + board ---- */
+  .noteswrap{flex:1;min-height:0;display:flex;flex-direction:column}
+  .notesbar{display:flex;align-items:center;gap:14px;padding:9px 18px;border-bottom:1px solid var(--line);background:var(--surface)}
+  .notesbar-hint{font-size:11.5px;color:var(--muted)}
+  .notes{border-top:none}
+  .etools{display:flex;flex-wrap:wrap;gap:4px;margin-top:9px}
+  .etools button{border:1px solid var(--line);background:var(--surface-2);color:var(--ink-soft);border-radius:7px;padding:4px 9px;font-size:11.5px;cursor:pointer;line-height:1.1}
+  .etools button:hover{border-color:var(--accent-line);color:var(--accent-ink);background:var(--accent-bg)}
+  .etsep{width:1px;background:var(--line);margin:2px 4px}
+  .ebody h1{font-family:var(--font-serif);font-size:24px;font-weight:700;margin:16px 0 6px;color:var(--ink)}
+  .ebody h2{font-family:var(--font-serif);font-size:19px;font-weight:600;margin:14px 0 5px;color:var(--accent-ink);border-bottom:1px solid var(--line-soft);padding-bottom:3px}
+  .ebody h3{font-family:var(--font-serif);font-size:16px;font-weight:600;margin:12px 0 4px;color:var(--ink)}
+  .ebody h4{font-size:13.5px;font-weight:700;margin:10px 0 3px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.05em}
+  .ebody ul,.ebody ol{margin:6px 0;padding-left:24px}
+  .ebody mark{background:var(--accent-bg);color:var(--accent-ink);padding:0 2px;border-radius:3px}
+  .board{flex:1;min-height:0;overflow:auto;padding:20px 24px}
+  .boardhead{display:flex;align-items:flex-end;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:16px}
+  .boardttl{font-family:var(--font-serif);font-size:20px;font-weight:600}
+  .boardsub{font-size:12.5px;color:var(--ink-soft);margin-top:2px}
+  .boardtools{display:flex;align-items:center;gap:10px}
+  .swatches{display:inline-flex;gap:5px}
+  .swatch{width:20px;height:20px;border-radius:50%;border:2px solid transparent;cursor:pointer}
+  .swatch.on{border-color:var(--ink)}
+  .stickies{columns:4 210px;column-gap:14px}
+  .sticky{break-inside:avoid;margin-bottom:14px;border-radius:12px;padding:14px 14px 12px;box-shadow:0 2px 8px rgba(40,37,31,.12);position:relative;min-height:120px;display:flex;flex-direction:column;color:#25221c}
+  .sticky .stx{flex:1;outline:none;font-size:13.5px;line-height:1.5;white-space:pre-wrap;word-break:break-word}
+  .sticky .stx:empty:before{content:'Write a quick note…';opacity:.5}
+  .sticky .stm{font-size:10px;opacity:.55;margin-top:8px;display:flex;justify-content:space-between;align-items:center}
+  .sticky .stdel{border:none;background:none;cursor:pointer;font-size:15px;line-height:1;opacity:.5;color:inherit}
+  .sticky .stdel:hover{opacity:1}
+  .askrow{padding:0 14px 2px;display:flex}
+  .exchk{font-size:11.5px;color:var(--ink-soft);display:inline-flex;align-items:center;gap:6px;cursor:pointer;user-select:none}
+  .exchk input{width:auto;accent-color:var(--accent)}
+  .example{margin-top:8px;margin-left:8px;font-size:11px;color:var(--brass);background:none;border:1px solid var(--line);border-radius:7px;padding:4px 9px;cursor:pointer;display:inline-flex;gap:5px;align-items:center}
+  .example:hover{border-color:var(--accent-line);color:var(--accent-ink)}
+
+  /* ---- KNOWLEDGE BASE ---- */
+  .kb{display:grid;grid-template-columns:290px 1fr;flex:1;min-height:0}
+  .kblist{border-right:1px solid var(--line);background:var(--surface)}
+  .kbsubjects{display:flex;flex-wrap:wrap;gap:6px;padding:10px 12px;border-bottom:1px solid var(--line-soft)}
+  .kbsub{font-size:11.5px;padding:5px 11px;border-radius:16px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-soft);cursor:pointer}
+  .kbsub.on{border-color:transparent;background:var(--accent);color:#fff;font-weight:500}
+  .kbitem{padding:11px 12px;border-radius:9px;cursor:pointer;margin-bottom:2px}
+  .kbitem:hover{background:var(--surface-2)}
+  .kbitem.on{background:var(--accent-bg)}
+  .kbitem .kt{font-size:13px;font-weight:500;color:var(--ink)}
+  .kbitem.on .kt{color:var(--accent-ink)}
+  .kbitem .ks{font-size:11px;color:var(--muted);margin-top:2px}
+  .kbread{background:var(--bg);overflow:auto}
+  .kbreadinner{padding:0;height:100%}
+  .kbart{padding:26px 34px 60px;max-width:760px;margin:0 auto}
+  .kbart .kbeye{font-size:11.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--brass);font-weight:600}
+  .kbart h1{font-family:var(--font-serif);font-size:27px;font-weight:600;margin:6px 0 4px}
+  .kbart .kbacts{display:flex;gap:8px;margin:14px 0 20px;flex-wrap:wrap}
+  .kbart h3{font-family:var(--font-serif);font-size:16.5px;margin:20px 0 6px;color:var(--accent-ink)}
+  .kbart p{font-size:14px;line-height:1.75;color:var(--ink);margin:8px 0}
+  .kbart ul{font-size:14px;line-height:1.7;color:var(--ink);padding-left:22px}
+  .kbart li{margin:4px 0}
+  .kbart .kbtag{display:inline-block;font-family:var(--font-mono);font-size:11.5px;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:1px 7px;color:var(--ink-soft)}
+
+  /* ---- QUESTION BANK paper ---- */
+  .qp{color:#1a1a1a;font-family:Georgia,serif}
+  .qp h1{font-size:19px;text-align:center;margin:0 0 3px}
+  .qp .qpmeta{text-align:center;font-size:11.5px;color:#555;border-bottom:1px solid #999;padding-bottom:10px;margin-bottom:14px}
+  .qp h2{font-size:13px;letter-spacing:.5px;text-transform:uppercase;border-bottom:1px solid #bbb;padding-bottom:3px;margin:18px 0 9px;color:#222}
+  .qp .qpq{font-size:12.5px;line-height:1.55;margin:9px 0}
+  .qp .qpopts{margin:4px 0 0;padding-left:20px;font-size:12px;color:#333}
+  .qp .qpkey{background:#f4f2eb;border:1px solid #ddd;border-radius:6px;padding:4px 8px;font-size:11.5px;color:#7a3a2a;margin-top:3px}
+  .bank-saveitem{display:flex;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--line-soft);font-size:12.5px;cursor:pointer}
+  .bank-saveitem:hover{color:var(--accent-ink)}
+  .bank-saveitem .m{margin-left:auto;color:var(--muted);font-size:11px}
+  .bank-saveitem .x{border:none;background:none;color:var(--muted);cursor:pointer;font-size:16px}
+  .bank-saveitem .x:hover{color:var(--danger)}
+
+  /* ---- MY SPACE ---- */
+  .spstats{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:18px}
+  .spstat{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 16px}
+  .spstat .n{font-family:var(--font-serif);font-size:26px;font-weight:600}
+  .spstat .l{font-size:11.5px;color:var(--ink-soft);margin-top:2px}
+  .spstat.money .n{color:var(--good)}
+  .spgrid{display:grid;grid-template-columns:1fr 320px;gap:16px}
+  .spcalhead{display:flex;align-items:center;gap:10px;margin-bottom:12px}
+  .spmonth{font-family:var(--font-serif);font-size:18px;font-weight:600}
+  .spdow{display:grid;grid-template-columns:repeat(7,1fr);gap:6px;margin-bottom:6px}
+  .spdow span{font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);text-align:center}
+  .spcal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+  .spcell{aspect-ratio:1;border:1px solid var(--line);border-radius:9px;background:var(--surface-2);padding:6px;cursor:pointer;display:flex;flex-direction:column;position:relative;min-height:52px}
+  .spcell.empty{border:none;background:none;cursor:default}
+  .spcell:hover:not(.empty){border-color:var(--accent-line)}
+  .spcell.today{outline:2px solid var(--accent);outline-offset:-2px}
+  .spcell.sel{border-color:var(--accent);background:var(--accent-bg)}
+  .spcell .dn{font-size:12px;color:var(--ink-soft);font-variant-numeric:tabular-nums}
+  .spcell .dots{display:flex;gap:3px;flex-wrap:wrap;margin-top:auto}
+  .spd{width:8px;height:8px;border-radius:50%;display:inline-block;flex-shrink:0}
+  .spd-class{background:var(--accent)}
+  .spd-exam{background:var(--brass)}
+  .spd-other{background:var(--muted)}
+  .spcell .dinc{font-size:9.5px;color:var(--good);font-weight:600;margin-top:2px}
+  .splegend{display:flex;gap:16px;margin-top:14px;font-size:11.5px;color:var(--ink-soft)}
+  .splegend span{display:flex;align-items:center;gap:6px}
+  .splegend i{width:9px;height:9px;border-radius:50%}
+  .spside{align-self:start}
+  .spentry{border:1px solid var(--line);border-radius:10px;padding:10px 11px;margin-bottom:9px;background:var(--surface-2);position:relative}
+  .spentry .se1{display:flex;align-items:center;gap:8px;font-size:12.5px}
+  .spentry .setype{font-weight:600}
+  .spentry .seinc{margin-left:auto;color:var(--good);font-weight:600;font-variant-numeric:tabular-nums}
+  .spentry .sesub{font-size:11.5px;color:var(--ink-soft);margin-top:3px}
+  .spentry .sedel{position:absolute;top:6px;right:8px;border:none;background:none;color:var(--muted);cursor:pointer;font-size:15px}
+  .spentry .sedel:hover{color:var(--danger)}
+  .spadd{display:grid;gap:8px;margin-top:6px}
+  .spadd label{font-size:11px;color:var(--ink-soft);display:block;margin-bottom:3px}
+  .spadd .resin{padding:7px 9px;font-size:12.5px}
+  @media (max-width:900px){.spstats{grid-template-columns:repeat(2,1fr)}.spgrid{grid-template-columns:1fr}}
+
+  /* ---- CHEAT SHEET ---- */
+  .exchev{font-size:11px;color:var(--accent-ink)}
+  .cs-tabs{display:flex;flex-wrap:wrap;gap:6px;margin:14px 0}
+  .cs-tab{font-size:11.5px;padding:5px 11px;border-radius:16px;border:1px solid var(--line);background:var(--surface-2);color:var(--ink-soft);cursor:pointer}
+  .cs-tab.on{border-color:transparent;background:var(--accent);color:#fff;font-weight:500}
+  .cs-body{font-size:13.5px;line-height:1.7;color:var(--ink)}
+  .cs-body h4{font-family:var(--font-serif);font-size:15px;color:var(--accent-ink);margin:14px 0 5px}
+  .cs-body ul{padding-left:20px;margin:6px 0}
+  .cs-body li{margin:4px 0}
+  .cs-body code{font-family:var(--font-mono);font-size:12.5px;background:var(--surface-2);border:1px solid var(--line-soft);border-radius:5px;padding:1px 6px;color:var(--accent-ink)}
+  .cs-body .csnote{font-size:12.5px;color:var(--ink-soft);background:var(--surface-2);border-left:3px solid var(--accent-line);border-radius:6px;padding:8px 11px;margin:8px 0}
+  @media (max-width:1000px){.kb{grid-template-columns:1fr}.kbread{display:none}}
+</style>
+</head>
+<body>
+<div class="app">
+  <!-- RAIL -->
+  <aside class="rail">
+    <div class="brand">
+      <div class="mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v18M7 21h10M12 6l-7 2 2.5 5a2.8 2.8 0 0 1-5 0L5 8M12 6l7 2-2.5 5a2.8 2.8 0 0 0 5 0L19 8"/></svg></div>
+      <div class="word">Lex<small>study companion</small></div>
+    </div>
+    <nav class="nav" id="nav">
+      <button data-v="notes" class="on"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 3h10l4 4v14H5zM15 3v4h4M8 12h8M8 16h5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Notes</button>
+      <button data-v="kb"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5a2 2 0 0 1 2-2h5v16H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-5v16h5a2 2 0 0 1 2 2z" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Knowledge base</button>
+      <button data-v="cards"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h11v13H4zM8 4h12v13" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Flashcards</button>
+      <button data-v="exam"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.4"/></svg></span>UGC-NET prep</button>
+      <button data-v="bank"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 4h9l3 3v13H6zM9 12h6M9 16h6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Question bank</button>
+      <button data-v="present"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 4h18v12H3zM12 16v4M8 20h8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Presentations</button>
+      <button data-v="read"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 6c-2-1.4-5-1.4-8-1v13c3-.4 6-.4 8 1 2-1.4 5-1.4 8-1V5c-3-.4-6-.4-8 1zM12 6v13" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Reading corner</button>
+      <button data-v="resume"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 3h9l3 3v15H6zM9 11h6M9 15h6M9 7h2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Resume builder</button>
+      <button data-v="space"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>My space</button>
+    </nav>
+    <div class="prof">
+      <div class="av">AM</div>
+      <div class="pn" contenteditable="true" data-k="name">Anwesha Mishra</div>
+      <div class="pq" contenteditable="true" data-k="qual">LLM, Corporate Law</div>
+      <div class="pd" contenteditable="true" data-k="desig">Guest Faculty</div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="top">
+      <span class="ttl" id="crumb">Notes</span>
+      <div class="spacer"></div>
+      <button class="tbtn" id="keyBtn"><span class="keydot" id="keydot"></span>Gemini key</button>
+      <button class="tbtn sq" id="themeBtn" title="Light / dark"><svg id="themeIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="tbtn sq" id="fsBtn" title="Fullscreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+    </div>
+
+    <!-- NOTES VIEW -->
+    <section class="view on" data-view="notes">
+     <div class="noteswrap">
+      <div class="notesbar">
+        <div class="seg">
+          <button class="seg-b on" data-nmode="doc">Notebook</button>
+          <button class="seg-b" data-nmode="board">Sticky board</button>
+        </div>
+        <span class="notesbar-hint" id="notesHint">Use the toolbar to add Modules, Topics &amp; Sub-topics.</span>
+      </div>
+      <!-- BOARD -->
+      <div class="board" data-nview="board" style="display:none">
+        <div class="boardhead">
+          <div>
+            <div class="boardttl">Sticky board &amp; whiteboard</div>
+            <div class="boardsub">Quick thoughts, reminders and to-dos — drag colours, edit inline.</div>
+          </div>
+          <div class="boardtools">
+            <span class="swatches" id="stkSwatches"></span>
+            <button class="btn pri" id="addSticky">+ New sticky</button>
+          </div>
+        </div>
+        <div class="stickies" id="stickies"></div>
+      </div>
+      <!-- NOTEBOOK -->
+      <div class="notes" data-nview="doc">
+        <!-- list -->
+        <div class="pane list">
+          <div class="lh">
+            <input id="search" placeholder="Search notes…">
+            <button class="iconbtn" id="importNote" title="Import PDF, Word or text file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 15V4M8 8l4-4 4 4M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button class="newbtn" id="newNote" title="New note">+</button>
+          </div>
+          <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.txt,.md" style="display:none">
+          <div class="items" id="items"></div>
+        </div>
+        <!-- editor -->
+        <div class="pane editor">
+          <div class="ehead">
+            <input class="etitle" id="etitle" placeholder="Untitled note">
+            <div class="etools" id="etools">
+              <button data-cmd="h1" title="Header (big section)">H1</button>
+              <button data-cmd="h2" title="Module">Module</button>
+              <button data-cmd="h3" title="Topic">Topic</button>
+              <button data-cmd="h4" title="Sub-topic">Sub·topic</button>
+              <button data-cmd="p" title="Normal text">Body</button>
+              <span class="etsep"></span>
+              <button data-cmd="bold" title="Bold"><b>B</b></button>
+              <button data-cmd="italic" title="Italic"><i>I</i></button>
+              <button data-cmd="ul" title="Bullet list">• List</button>
+              <button data-cmd="ol" title="Numbered list">1. List</button>
+              <button data-cmd="hl" title="Highlight">Mark</button>
+            </div>
+            <div class="emeta">
+              <span id="esaved">Saved</span>
+              <span>·</span>
+              <button id="delNote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M5 7h14M9 7V5h6v2M6 7l1 13h10l1-13" stroke-linecap="round" stroke-linejoin="round"/></svg>Delete</button>
+            </div>
+          </div>
+          <div class="ebody" id="ebody" contenteditable="true" data-ph="Start writing your notes here…"></div>
+        </div>
+        <!-- bot -->
+        <div class="pane bot">
+          <div class="both">
+            <div class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 4l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" stroke-linejoin="round"/></svg></div>
+            <div><div class="bt">Ask Gemini</div><div class="bs">Doubts, cases, explanations</div></div>
+          </div>
+          <div class="thread" id="thread">
+            <div class="bwelcome">Ask any doubt while you write — <b>“What is the doctrine of frustration?”</b>, <b>“Summarise Article 21”</b>, or tap a law topic below. Answers can be inserted straight into your note.</div>
+          </div>
+          <div class="topics">
+            <div class="th">Law topics</div>
+            <div class="tchips" id="tchips"></div>
+          </div>
+          <div class="askrow">
+            <label class="exchk" title="Ask Gemini to include a worked example"><input type="checkbox" id="askEx"> with example</label>
+          </div>
+          <div class="askbar">
+            <textarea id="ask" rows="1" placeholder="Ask a doubt…"></textarea>
+            <button class="sendbtn" id="send" title="Ask"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12l16-8-6 16-2.5-6z" stroke-linejoin="round"/></svg></button>
+          </div>
+        </div>
+      </div>
+     </div>
+    </section>
+
+    <!-- KNOWLEDGE BASE -->
+    <section class="view" data-view="kb">
+      <div class="kb">
+        <div class="pane kblist">
+          <div class="lh">
+            <input id="kbSearch" placeholder="Search topics, acts, sections…">
+          </div>
+          <div class="kbsubjects" id="kbSubjects"></div>
+          <div class="items" id="kbItems"></div>
+        </div>
+        <div class="pane kbread">
+          <div class="kbreadinner" id="kbRead">
+            <div class="ph" style="height:100%">
+              <div class="pico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 5a2 2 0 0 1 2-2h5v16H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-5v16h5a2 2 0 0 1 2 2z" stroke-linejoin="round"/></svg></div>
+              <h2>Knowledge base</h2>
+              <p>Pick a subject on the left, or search across labour law, corporate law, constitutional law and more. Not there? Ask Gemini to look it up.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- other views: placeholders -->
+    <section class="view" data-view="cards"><div class="ph"><div class="pico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M4 7h11v13H4zM8 4h12v13" stroke-linejoin="round"/></svg></div><h2>Flashcards</h2><p>Coming in the next build — spaced-repetition decks for cases, maxims and current legal GK. The design is ready in the prototype.</p></div></section>
+    <section class="view" data-view="exam">
+      <div class="exwrap">
+        <!-- HOME -->
+        <div class="expane" id="exHome">
+          <p class="exeyebrow">Academic career track</p>
+          <h1 class="exh1">UGC-NET prep</h1>
+          <p class="exlead">Practice like a coach — generate a quiz on any topic, take a timed mock, and watch your weak areas shrink.</p>
+          <div class="exgrid3">
+            <button class="exact" id="exPractice"><span class="ei"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M13 4l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" stroke-linejoin="round"/></svg></span><span><span class="eh">Practice a topic</span><span class="ed">Gemini makes fresh MCQs</span></span></button>
+            <button class="exact" id="exPyq"><span class="ei"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 15V4M8 8l4-4 4 4M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><span class="eh">From PYQs</span><span class="ed">Paste past papers →­ similar Qs</span></span></button>
+            <button class="exact" id="exQuick"><span class="ei"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 5l12 7-12 7z" stroke-linejoin="round"/></svg></span><span><span class="eh">Quick mock</span><span class="ed">10 sample Qs · no key needed</span></span></button>
+          </div>
+          <div class="excard" style="margin-bottom:22px">
+            <div class="exlabel" style="display:flex;align-items:center;justify-content:space-between;cursor:pointer" id="exCheatToggle">
+              <span>Cheat sheets &amp; formulae — Paper 1 &amp; aptitude</span>
+              <span class="exchev" id="exCheatChev">Show</span>
+            </div>
+            <div id="exCheat" style="display:none"><div class="cs-tabs" id="csTabs"></div><div class="cs-body" id="csBody"></div></div>
+          </div>
+          <div class="excols">
+            <div class="excard">
+              <div class="exlabel">Topic strength</div>
+              <div id="exStrength"><div class="exempty">Take a quiz and your strengths by topic show up here.</div></div>
+            </div>
+            <div class="excard">
+              <div class="exlabel">Recent attempts</div>
+              <div id="exHistory"><div class="exempty">No attempts yet.</div></div>
+            </div>
+          </div>
+        </div>
+        <!-- TEST -->
+        <div class="expane" id="exTest" style="display:none">
+          <div class="exhead">
+            <button class="tbtn sq" id="exExit" title="Leave test"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <div><div class="exmuted" style="font-size:11.5px;color:var(--muted)" id="exTestLabel">Practice</div><strong style="font-family:var(--font-serif)" id="exTestSub">UGC-NET</strong></div>
+            <div style="margin-left:auto;text-align:right"><div style="font-size:10.5px;color:var(--muted);letter-spacing:.1em;text-transform:uppercase">Time left</div><div class="extimer" id="exTimer">00:00</div></div>
+          </div>
+          <div class="extest">
+            <div class="exq">
+              <div class="exqn" id="exQn">Question 1</div>
+              <div class="exqt" id="exQt"></div>
+              <div id="exOpts"></div>
+              <div class="exnav">
+                <button class="btn" id="exPrev"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" style="width:15px;height:15px"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>Previous</button>
+                <div style="display:flex;gap:8px">
+                  <button class="btn" id="exMark">Mark for review</button>
+                  <button class="btn pri" id="exNext">Next</button>
+                </div>
+              </div>
+            </div>
+            <div class="expalette">
+              <div class="exptitle">Questions</div>
+              <div class="expgrid" id="exGrid"></div>
+              <div class="exlegend">
+                <span><span class="exdot" style="background:var(--good-bg);border-color:transparent"></span>Answered</span>
+                <span><span class="exdot" style="background:var(--warn);border-color:transparent"></span>Marked</span>
+                <span><span class="exdot"></span>Not answered</span>
+              </div>
+              <button class="btn pri" id="exSubmit" style="width:100%;margin-top:14px;justify-content:center">Submit test</button>
+            </div>
+          </div>
+        </div>
+        <!-- RESULT -->
+        <div class="expane" id="exResult" style="display:none">
+          <button class="tbtn" id="exBack" style="margin-bottom:16px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>Back to prep</button>
+          <p class="exeyebrow" id="exResLabel">Complete</p>
+          <h1 class="exh1">Here's how you did</h1>
+          <div class="excard" style="margin-top:14px">
+            <div class="exscore">
+              <svg class="exring" viewBox="0 0 42 42" id="exRing">
+                <circle cx="21" cy="21" r="15.9" fill="none" stroke="var(--surface-3)" stroke-width="4"></circle>
+                <circle id="exRingArc" cx="21" cy="21" r="15.9" fill="none" stroke="var(--accent)" stroke-width="4" stroke-dasharray="0 100" stroke-dashoffset="25" stroke-linecap="round" transform="rotate(-90 21 21)"></circle>
+                <text x="21" y="20.5" text-anchor="middle" id="exRingPct" style="font-family:var(--font-serif);font-size:9px;font-weight:600;fill:var(--ink)">0%</text>
+                <text x="21" y="27" text-anchor="middle" id="exRingFrac" style="font-size:3.4px;fill:var(--muted)">0 / 0</text>
+              </svg>
+              <div class="exrs">
+                <div><div class="n" style="color:var(--good)" id="exResCorrect">0</div><div class="l">Correct</div></div>
+                <div><div class="n" style="color:var(--danger)" id="exResWrong">0</div><div class="l">Wrong</div></div>
+                <div><div class="n" id="exResSkip">0</div><div class="l">Skipped</div></div>
+              </div>
+            </div>
+          </div>
+          <div class="excard" style="margin-top:14px">
+            <div class="exlabel">Review &amp; explanations</div>
+            <div id="exReview"></div>
+          </div>
+        </div>
+      </div>
+    </section>
+    <section class="view" data-view="bank">
+      <div class="reswrap">
+        <div class="restop">
+          <div><p class="exeyebrow">For your students</p><div class="rt">Question bank</div></div>
+          <div class="resactions">
+            <button class="btn" id="bankCopy" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><path d="M9 9h10v10H9zM5 15H4V4h11v1" stroke-linecap="round" stroke-linejoin="round"/></svg>Copy</button>
+            <button class="btn" id="bankDoc" style="display:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><path d="M6 3h9l3 3v15H6zM8 12l1.5 5 1.5-4 1.5 4 1.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Word</button>
+            <button class="btn" id="bankKey" style="display:none">Show / hide answer key</button>
+          </div>
+        </div>
+        <div class="resgrid">
+          <div class="resedit" id="bankForm">
+            <div class="resgrp"><div class="gh"><span>Describe the paper</span></div>
+              <div class="resf"><label>Subject / course</label><input class="resin" id="bkSubject" placeholder="e.g. Company Law — B.A. LL.B. Sem V"></div>
+              <div class="resf"><label>Topics / syllabus to cover (plain English)</label><textarea class="resin" id="bkTopics" rows="4" placeholder="e.g. Incorporation, lifting the corporate veil, doctrine of ultra vires, prospectus, shares and debentures. Emphasis on the Companies Act, 2013."></textarea></div>
+              <div class="res2">
+                <div class="resf"><label>Paper title / exam name</label><input class="resin" id="bkTitle" placeholder="Mid-Semester Examination"></div>
+                <div class="resf"><label>Total marks</label><input class="resin" id="bkMarks" placeholder="50"></div>
+              </div>
+              <div class="res2">
+                <div class="resf"><label>Difficulty</label><select class="resin" id="bkDiff"><option>Easy</option><option selected>Moderate</option><option>Hard</option><option>Mixed</option></select></div>
+                <div class="resf"><label>Duration</label><input class="resin" id="bkDuration" placeholder="2 hours"></div>
+              </div>
+            </div>
+            <div class="resgrp"><div class="gh"><span>Question mix</span></div>
+              <div class="res2">
+                <div class="resf"><label>MCQ (1 mark)</label><input class="resin" type="number" min="0" id="bkMcq" value="5"></div>
+                <div class="resf"><label>Short answer</label><input class="resin" type="number" min="0" id="bkShort" value="3"></div>
+              </div>
+              <div class="res2">
+                <div class="resf"><label>Long answer</label><input class="resin" type="number" min="0" id="bkLong" value="2"></div>
+                <div class="resf"><label>Case / problem</label><input class="resin" type="number" min="0" id="bkCase" value="1"></div>
+              </div>
+              <div class="resf"><label style="display:flex;align-items:center;gap:8px;cursor:pointer"><input type="checkbox" id="bkAnsKey" checked style="width:auto"> Also generate a model answer key</label></div>
+            </div>
+            <button class="btn pri" id="bankGen" style="width:100%;justify-content:center">Generate question paper</button>
+            <div class="hint" id="bankHint" style="margin-top:10px">Uses Gemini. India-focused; you can edit anything after.</div>
+            <div class="resgrp" id="bankSaved" style="margin-top:18px"></div>
+          </div>
+          <div class="resprevwrap"><div class="respage" id="bankPaper"><div class="ph" style="min-height:400px;color:#666"><div class="pico" style="background:#eee;color:#999"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M6 4h9l3 3v13H6z" stroke-linejoin="round"/></svg></div><h2 style="color:#333">Your paper appears here</h2><p>Fill the form and click Generate. The paper and answer key render on this page, ready to copy or download as Word.</p></div></div></div>
+        </div>
+      </div>
+    </section>
+    <section class="view" data-view="present"><div class="ph"><div class="pico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M3 4h18v12H3zM12 16v4" stroke-linejoin="round"/></svg></div><h2>Presentations</h2><p>Coming next — turn any note into a teaching deck and export it to PowerPoint.</p></div></section>
+    <section class="view" data-view="read"><div class="ph"><div class="pico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 6c-2-1.4-5-1.4-8-1v13c3-.4 6-.4 8 1 2-1.4 5-1.4 8-1V5c-3-.4-6-.4-8 1z" stroke-linejoin="round"/></svg></div><h2>Reading corner</h2><p>Coming next — free classics and your own uploads with sepia/night reading modes, highlights and a tap-to-look-up dictionary.</p></div></section>
+
+    <!-- RESUME BUILDER -->
+    <section class="view" data-view="resume">
+      <div class="reswrap">
+        <div class="restop">
+          <div><p class="exeyebrow">Career toolkit</p><div class="rt">Resume builder</div></div>
+          <div class="resactions">
+            <select id="resPath" class="resin" style="width:auto" title="Load a career-path sample"></select>
+            <button class="btn" id="resImport" title="Upload an existing resume (PDF / Word) and let AI fill the fields"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><path d="M12 15V4M8 8l4-4 4 4M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload &amp; AI fill</button>
+            <input type="file" id="resFile" accept=".pdf,.docx,.doc,.txt,.md" style="display:none">
+            <button class="btn" id="resAts" title="Match your resume against a job description"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><circle cx="11" cy="11" r="7" stroke-linecap="round"/><path d="M20 20l-3.2-3.2M8.5 11l1.8 1.8 3.4-3.6" stroke-linecap="round" stroke-linejoin="round"/></svg>ATS check</button>
+            <button class="btn" id="resCopy" title="Copy as plain text for online forms"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><path d="M9 9h10v10H9zM5 15H4V4h11v1" stroke-linecap="round" stroke-linejoin="round"/></svg>Copy text</button>
+            <button class="btn" id="resDoc" title="Download an editable Word file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><path d="M6 3h9l3 3v15H6zM8 12l1.5 5 1.5-4 1.5 4 1.5-5" stroke-linecap="round" stroke-linejoin="round"/></svg>Word</button>
+            <button class="btn pri" id="resPdf" title="Print or save as PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><path d="M12 15V4M8 8l4-4 4 4M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg>Download PDF</button>
+          </div>
+        </div>
+        <div class="resgrid">
+          <div class="resedit" id="resEditor"></div>
+          <div class="resprevwrap"><div class="respage" id="resPreview"></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- MY SPACE -->
+    <section class="view" data-view="space">
+      <div class="exwrap">
+        <div class="expane" style="max-width:1000px">
+          <p class="exeyebrow">Personal · <span id="spOwner">Anwesha</span></p>
+          <h1 class="exh1">My space</h1>
+          <p class="exlead">Mark each teaching day, track classes and duties, and see your class-wise income add up for the month.</p>
+
+          <div class="spstats" id="spStats"></div>
+
+          <div class="spgrid">
+            <div class="excard spcalcard">
+              <div class="spcalhead">
+                <button class="tbtn sq" id="spPrev" title="Previous month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <div class="spmonth" id="spMonth">Month</div>
+                <button class="tbtn sq" id="spNext" title="Next month"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+                <button class="tbtn" id="spToday" style="margin-left:auto">Today</button>
+              </div>
+              <div class="spdow"><span>Sun</span><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span></div>
+              <div class="spcal" id="spCal"></div>
+              <div class="splegend">
+                <span><i class="spd spd-class"></i>Class</span>
+                <span><i class="spd spd-exam"></i>Exam duty</span>
+                <span><i class="spd spd-other"></i>Other</span>
+              </div>
+            </div>
+
+            <div class="excard spside">
+              <div class="exlabel" id="spDayTitle">Select a day</div>
+              <div id="spDayBody"><div class="exempty">Tap any date in the calendar to log classes, exam duty or other work for that day.</div></div>
+            </div>
+          </div>
+
+          <div class="excard" style="margin-top:16px">
+            <div class="exlabel">Pay settings</div>
+            <div class="res2" style="max-width:520px">
+              <div class="resf"><label>Default pay per class (₹)</label><input class="resin" type="number" min="0" id="spRate" placeholder="500"></div>
+              <div class="resf"><label>Pay per exam duty (₹)</label><input class="resin" type="number" min="0" id="spExamRate" placeholder="800"></div>
+            </div>
+            <div class="hint">These are used to estimate income. You can override the amount on any individual entry.</div>
+          </div>
+        </div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- EXAM SETUP MODAL -->
+<div class="modal" id="exModal">
+  <div class="sheet">
+    <h3 id="exmTitle">Practice a topic</h3>
+    <p id="exmDesc">Lex generates fresh questions with Gemini. Choose what to drill.</p>
+    <div id="exmTopicWrap">
+      <label>Topic</label>
+      <input id="exmTopic" list="exmTopics" placeholder="e.g. Fundamental rights" autocomplete="off">
+      <datalist id="exmTopics"></datalist>
+    </div>
+    <div id="exmPyqWrap" style="display:none">
+      <label>Previous-year questions</label>
+      <textarea id="exmPyq" rows="5" placeholder="Paste a few past questions here — or upload a PDF / Word file below. Lex studies their style and makes new, similar ones."></textarea>
+      <button class="btn" id="exmPyqUpload" style="margin-top:8px;font-size:12.5px;padding:8px 13px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><path d="M12 15V4M8 8l4-4 4 4M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload PDF / Word</button>
+      <input type="file" id="exmPyqFile" accept=".pdf,.docx,.doc,.txt,.md" style="display:none">
+    </div>
+    <div class="rowflds">
+      <div><label>Questions</label><select id="exmCount"><option>5</option><option selected>10</option><option>15</option><option>20</option></select></div>
+      <div><label>Difficulty</label><select id="exmDiff"><option>Easy</option><option selected>Moderate</option><option>Hard</option></select></div>
+      <div><label>Paper</label><select id="exmPaper"><option value="Paper 2 (Law)" selected>Paper 2 · Law</option><option value="Paper 1 (Teaching &amp; Research Aptitude)">Paper 1 · Aptitude</option></select></div>
+    </div>
+    <div class="hint" id="exmHint">Timed at ~1 minute per question. You can submit early.</div>
+    <div class="actions">
+      <button class="btn" id="exmCancel">Cancel</button>
+      <button class="btn pri" id="exmStart">Generate &amp; start</button>
+    </div>
+  </div>
+</div>
+
+<!-- KEY MODAL -->
+<div class="modal" id="keyModal">
+  <div class="sheet">
+    <h3>Connect Gemini</h3>
+    <p>Lex uses Google Gemini for the AI. The free tier is generous and needs no card. Get a key at <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">aistudio.google.com/apikey</a>, then paste it below. It's stored only in this browser on your PC.</p>
+    <label>API key</label>
+    <input id="keyInput" type="password" placeholder="AIza…" autocomplete="off">
+    <label>Model</label>
+    <select id="modelInput">
+      <option value="gemini-flash-latest">gemini-flash-latest · always newest (recommended)</option>
+      <option value="gemini-2.0-flash">gemini-2.0-flash · fast, free</option>
+      <option value="gemini-2.5-flash-lite">gemini-2.5-flash-lite · light &amp; free</option>
+      <option value="gemini-1.5-flash">gemini-1.5-flash · fallback</option>
+    </select>
+    <div class="hint">Lex auto-picks a working model if this one isn't available on your key. Nothing is sent anywhere except directly to Google.</div>
+    <div class="actions">
+      <button class="btn" id="keyCancel">Cancel</button>
+      <button class="btn pri" id="keySave">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ATS MODAL -->
+<div class="modal" id="atsModal">
+  <div class="sheet wide">
+    <h3>ATS keyword check</h3>
+    <p>Paste a job description. Lex compares it with your current resume and highlights the keywords and skills to add so it clears automated screening.</p>
+    <div id="atsInput">
+      <label>Job description</label>
+      <textarea id="atsJd" rows="7" placeholder="Paste the full posting — responsibilities, required skills, qualifications…"></textarea>
+      <div class="hint" id="atsHint">Uses Gemini. Your resume and this text are sent only to Google.</div>
+    </div>
+    <div class="ats-body" id="atsResult" style="display:none"></div>
+    <div class="actions">
+      <button class="btn" id="atsCancel">Close</button>
+      <button class="btn" id="atsAgain" style="display:none">Check another</button>
+      <button class="btn pri" id="atsRun">Analyse</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function(){
+  var LS=window.localStorage;
+  var $=function(s){return document.querySelector(s)};
+  var root=document.documentElement;
+
+  /* ---------- theme ---------- */
+  var savedTheme=LS.getItem('lex_theme')||'light';
+  root.setAttribute('data-theme',savedTheme);
+  $('#themeBtn').onclick=function(){var n=root.getAttribute('data-theme')==='dark'?'light':'dark';root.setAttribute('data-theme',n);LS.setItem('lex_theme',n);};
+
+  /* ---------- fullscreen ---------- */
+  $('#fsBtn').onclick=function(){ if(!document.fullscreenElement){document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();} else {document.exitFullscreen&&document.exitFullscreen();} };
+
+  /* ---------- profile ---------- */
+  var prof=JSON.parse(LS.getItem('lex_profile')||'{}');
+  document.querySelectorAll('.prof [contenteditable]').forEach(function(el){
+    var k=el.getAttribute('data-k'); if(prof[k])el.textContent=prof[k];
+    el.addEventListener('input',function(){prof[k]=el.textContent;LS.setItem('lex_profile',JSON.stringify(prof));
+      if(k==='name'){var i=el.textContent.trim().split(/\s+/).map(function(w){return w[0]}).join('').slice(0,2).toUpperCase();$('.prof .av').textContent=i||'AM';}});
+  });
+
+  /* ---------- nav ---------- */
+  var crumbs={notes:'Notes',kb:'Knowledge base',cards:'Flashcards',exam:'UGC-NET prep',bank:'Question bank',present:'Presentations',read:'Reading corner',resume:'Resume builder',space:'My space'};
+  document.querySelectorAll('#nav button').forEach(function(b){b.onclick=function(){
+    var v=b.getAttribute('data-v');
+    document.querySelectorAll('#nav button').forEach(function(x){x.classList.toggle('on',x===b)});
+    document.querySelectorAll('.view').forEach(function(s){s.classList.toggle('on',s.getAttribute('data-view')===v)});
+    $('#crumb').textContent=crumbs[v];
+  };});
+
+  /* ========== NOTES ========== */
+  var notes=JSON.parse(LS.getItem('lex_notes')||'null');
+  if(!notes){ notes=[{id:Date.now(),title:'Welcome',body:'This is your notebook. Everything you type here is saved automatically on this PC.\n\nUse the “Ask Gemini” panel on the right for any doubt while you write — the answer can be inserted right into your note.',ts:Date.now()}]; }
+  var curId=notes.length?notes[0].id:null;
+
+  function save(){LS.setItem('lex_notes',JSON.stringify(notes));}
+  function cur(){return notes.find(function(n){return n.id===curId});}
+  function fmtDate(ts){var d=new Date(ts);return d.toLocaleDateString(undefined,{day:'numeric',month:'short'})+' · '+d.toLocaleTimeString(undefined,{hour:'2-digit',minute:'2-digit'});}
+  var _tmp=document.createElement('div');
+  function plain(html){_tmp.innerHTML=html||'';return _tmp.textContent||'';}
+  function preview(b){return plain(b).replace(/\s+/g,' ').trim().slice(0,60)||'No text yet';}
+  function setBody(n){
+    var el=$('#ebody');
+    if(n.html){el.innerHTML=n.body||'';}
+    else{el.innerHTML=(n.body||'').split('\n').map(function(l){return l.trim()?'<div>'+esc(l)+'</div>':'<div><br></div>';}).join('');}
+  }
+
+  function renderList(){
+    var q=($('#search').value||'').toLowerCase();
+    var box=$('#items');box.innerHTML='';
+    var filtered=notes.filter(function(n){return !q||(n.title+' '+plain(n.body)).toLowerCase().indexOf(q)>=0;})
+                      .sort(function(a,b){return b.ts-a.ts;});
+    if(!filtered.length){box.innerHTML='<div class="empty">No notes yet.<br>Tap + to start one.</div>';return;}
+    filtered.forEach(function(n){
+      var el=document.createElement('div');el.className='item'+(n.id===curId?' on':'');
+      el.innerHTML='<div class="it"></div><div class="ip"></div>';
+      el.querySelector('.it').textContent=n.title||'Untitled note';
+      el.querySelector('.ip').textContent=preview(n.body);
+      el.onclick=function(){curId=n.id;renderAll();};
+      box.appendChild(el);
+    });
+  }
+  function renderEditor(){
+    var n=cur();
+    if(!n){$('#etitle').value='';$('#ebody').innerHTML='';$('#etitle').disabled=true;$('#ebody').setAttribute('contenteditable','false');return;}
+    $('#etitle').disabled=false;$('#ebody').setAttribute('contenteditable','true');
+    $('#etitle').value=n.title;setBody(n);
+    $('#esaved').textContent='Saved · '+fmtDate(n.ts);
+  }
+  function renderAll(){renderList();renderEditor();}
+
+  var saveTimer;
+  function touch(){
+    var n=cur();if(!n)return;
+    n.title=$('#etitle').value;n.body=$('#ebody').innerHTML;n.html=true;n.ts=Date.now();
+    $('#esaved').textContent='Saving…';
+    clearTimeout(saveTimer);saveTimer=setTimeout(function(){save();$('#esaved').textContent='Saved · '+fmtDate(n.ts);renderList();},400);
+  }
+  $('#etitle').addEventListener('input',touch);
+  $('#ebody').addEventListener('input',touch);
+
+  $('#newNote').onclick=function(){var n={id:Date.now(),title:'',body:'',ts:Date.now()};notes.unshift(n);curId=n.id;save();renderAll();$('#etitle').focus();};
+  $('#delNote').onclick=function(){var n=cur();if(!n)return;if(!confirm('Delete “'+(n.title||'Untitled note')+'”?'))return;notes=notes.filter(function(x){return x.id!==n.id});curId=notes.length?notes[0].id:null;save();renderAll();};
+  $('#search').addEventListener('input',renderList);
+
+  /* ----- editor formatting toolbar ----- */
+  $('#etools').addEventListener('mousedown',function(e){
+    var b=e.target.closest('button[data-cmd]');if(!b)return;
+    e.preventDefault(); // keep selection in the editor
+    var cmd=b.getAttribute('data-cmd');
+    $('#ebody').focus();
+    if(cmd==='h1'||cmd==='h2'||cmd==='h3'||cmd==='h4'||cmd==='p'){
+      document.execCommand('formatBlock',false,'<'+cmd+'>');
+    }else if(cmd==='bold'){document.execCommand('bold');}
+    else if(cmd==='italic'){document.execCommand('italic');}
+    else if(cmd==='ul'){document.execCommand('insertUnorderedList');}
+    else if(cmd==='ol'){document.execCommand('insertOrderedList');}
+    else if(cmd==='hl'){
+      var sel=window.getSelection();
+      if(sel&&sel.rangeCount&&!sel.isCollapsed){
+        if(!document.execCommand('hiliteColor',false,'#f6e7e4'))document.execCommand('backColor',false,'#f6e7e4');
+      }
+    }
+    touch();
+  });
+
+  /* ----- notebook / board toggle ----- */
+  document.querySelectorAll('[data-nmode]').forEach(function(b){
+    b.onclick=function(){
+      var m=b.getAttribute('data-nmode');
+      document.querySelectorAll('[data-nmode]').forEach(function(x){x.classList.toggle('on',x===b);});
+      document.querySelector('[data-nview="doc"]').style.display=m==='doc'?'':'none';
+      document.querySelector('[data-nview="board"]').style.display=m==='board'?'':'none';
+      $('#notesHint').textContent=m==='doc'?'Use the toolbar to add Modules, Topics & Sub-topics.':'Click a sticky to edit · pick a colour before adding a new one.';
+      if(m==='board')renderStickies();
+    };
+  });
+
+  /* ----- sticky board ----- */
+  var STK_COLORS=['#FDE68A','#BBF7D0','#BFDBFE','#FBCFE8','#FED7AA','#E9D5FF','#F4F2EB'];
+  var stickies=JSON.parse(LS.getItem('lex_stickies')||'null');
+  if(!stickies){stickies=[{id:Date.now(),text:'Faculty meeting — Fri 3pm',color:'#FDE68A',ts:Date.now()},{id:Date.now()+1,text:'Prep Contract Law unit 3\nBring Mohori Bibee case',color:'#BBF7D0',ts:Date.now()}];}
+  var stkColor=STK_COLORS[0];
+  function saveStickies(){LS.setItem('lex_stickies',JSON.stringify(stickies));}
+  function renderSwatches(){
+    var sw=$('#stkSwatches');if(!sw)return;sw.innerHTML='';
+    STK_COLORS.forEach(function(c){var d=document.createElement('span');d.className='swatch'+(c===stkColor?' on':'');d.style.background=c;
+      d.onclick=function(){stkColor=c;renderSwatches();};sw.appendChild(d);});
+  }
+  function renderStickies(){
+    var box=$('#stickies');if(!box)return;box.innerHTML='';
+    if(!stickies.length){box.innerHTML='<div class="empty" style="columns:1">No stickies yet. Pick a colour and tap “New sticky”.</div>';return;}
+    stickies.slice().sort(function(a,b){return b.ts-a.ts;}).forEach(function(s){
+      var el=document.createElement('div');el.className='sticky';el.style.background=s.color||'#FDE68A';
+      el.innerHTML='<div class="stx" contenteditable="true"></div><div class="stm"><span></span><button class="stdel" title="Delete">&times;</button></div>';
+      var tx=el.querySelector('.stx');tx.textContent=s.text||'';
+      el.querySelector('.stm span').textContent=fmtDate(s.ts);
+      tx.addEventListener('input',function(){s.text=tx.innerText;s.ts=Date.now();clearTimeout(s._t);s._t=setTimeout(saveStickies,400);});
+      el.querySelector('.stdel').onclick=function(){if(!confirm('Delete this sticky?'))return;stickies=stickies.filter(function(x){return x.id!==s.id;});saveStickies();renderStickies();};
+      box.appendChild(el);
+    });
+  }
+  $('#addSticky').onclick=function(){var s={id:Date.now(),text:'',color:stkColor,ts:Date.now()};stickies.unshift(s);saveStickies();renderStickies();
+    var first=$('#stickies').querySelector('.stx');if(first)first.focus();};
+  renderSwatches();
+
+  /* ----- toast ----- */
+  var toastEl,toastT;
+  function toast(msg,sticky){
+    if(!toastEl){toastEl=document.createElement('div');toastEl.className='toast';document.body.appendChild(toastEl);}
+    toastEl.textContent=msg;toastEl.classList.add('show');
+    clearTimeout(toastT);if(!sticky)toastT=setTimeout(function(){toastEl.classList.remove('show');},2800);
+  }
+  function hideToast(){if(toastEl)toastEl.classList.remove('show');}
+
+  /* ----- import PDF / Word / text ----- */
+  var scriptCache={};
+  function loadScript(src){return scriptCache[src]||(scriptCache[src]=new Promise(function(res,rej){
+    var s=document.createElement('script');s.src=src;s.onload=res;
+    s.onerror=function(){scriptCache[src]=null;rej(new Error('Couldn’t load a needed library — check your internet connection.'));};
+    document.head.appendChild(s);}));}
+  var PDF_JS='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js';
+  var PDF_WORKER='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  var MAMMOTH_JS='https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js';
+  function readBuf(f){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(r.result);};r.onerror=rej;r.readAsArrayBuffer(f);});}
+  function readTxt(f){return new Promise(function(res,rej){var r=new FileReader();r.onload=function(){res(r.result);};r.onerror=rej;r.readAsText(f);});}
+  async function extractPdf(buf){
+    await loadScript(PDF_JS);
+    window.pdfjsLib.GlobalWorkerOptions.workerSrc=PDF_WORKER;
+    var pdf=await window.pdfjsLib.getDocument({data:buf}).promise;
+    var out='';
+    for(var p=1;p<=pdf.numPages;p++){var page=await pdf.getPage(p);var c=await page.getTextContent();
+      out+=c.items.map(function(i){return i.str;}).join(' ')+'\n\n';}
+    return out.trim();
+  }
+  async function extractDocx(buf){
+    await loadScript(MAMMOTH_JS);
+    var r=await window.mammoth.extractRawText({arrayBuffer:buf});
+    return (r.value||'').trim();
+  }
+  $('#importNote').onclick=function(){$('#fileInput').click();};
+  $('#fileInput').addEventListener('change',async function(e){
+    var f=e.target.files&&e.target.files[0];if(!f)return;e.target.value='';
+    var ext=(f.name.split('.').pop()||'').toLowerCase();
+    var name=f.name.replace(/\.[^.]+$/,'');
+    toast('Reading '+f.name+'…',true);
+    try{
+      var text;
+      if(ext==='pdf'){text=await extractPdf(await readBuf(f));}
+      else if(ext==='docx'||ext==='doc'){text=await extractDocx(await readBuf(f));}
+      else{text=await readTxt(f);}
+      if(!text){toast('No readable text found — the file may be a scanned image.');return;}
+      var n={id:Date.now(),title:name,body:text,ts:Date.now()};
+      notes.unshift(n);curId=n.id;save();renderAll();
+      toast('Imported “'+name+'” · '+text.length.toLocaleString()+' characters');
+    }catch(err){toast((err&&err.message)||'Couldn’t import that file.');}
+  });
+
+  /* ========== GEMINI ========== */
+  function getKey(){return LS.getItem('lex_key')||'';}
+  function getModel(){return LS.getItem('lex_model')||'gemini-2.0-flash';}
+  function refreshKeydot(){$('#keydot').classList.toggle('ok',!!getKey());}
+  $('#keyBtn').onclick=function(){$('#keyInput').value=getKey();$('#modelInput').value=getModel();$('#keyModal').classList.add('on');$('#keyInput').focus();};
+  $('#keyCancel').onclick=function(){$('#keyModal').classList.remove('on');};
+  $('#keyModal').addEventListener('click',function(e){if(e.target===$('#keyModal'))$('#keyModal').classList.remove('on');});
+  $('#keySave').onclick=function(){LS.setItem('lex_key',$('#keyInput').value.trim());LS.setItem('lex_model',$('#modelInput').value);refreshKeydot();$('#keyModal').classList.remove('on');};
+
+  function esc(s){return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  function mdlite(s){
+    s=esc(s);
+    s=s.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/(^|[^*])\*([^*]+)\*/g,'$1<em>$2</em>');
+    var lines=s.split('\n'),out=[],inul=false;
+    lines.forEach(function(l){
+      if(/^\s*[-*]\s+/.test(l)){if(!inul){out.push('<ul>');inul=true;}out.push('<li>'+l.replace(/^\s*[-*]\s+/,'')+'</li>');}
+      else{if(inul){out.push('</ul>');inul=false;}out.push(l.trim()?('<div>'+l+'</div>'):'');}
+    });
+    if(inul)out.push('</ul>');
+    return out.join('');
+  }
+
+  var thread=$('#thread');
+  function addMsg(role,html){var m=document.createElement('div');m.className='msg '+role;m.innerHTML=html;thread.appendChild(m);thread.scrollTop=thread.scrollHeight;return m;}
+
+  var discovered=null;
+  async function listModels(){
+    if(discovered)return discovered;
+    var key=getKey(); if(!key)return [];
+    try{
+      var res=await fetch('https://generativelanguage.googleapis.com/v1beta/models?key='+encodeURIComponent(key));
+      if(!res.ok)return [];
+      var j=await res.json();
+      var ok=(j.models||[]).filter(function(m){return (m.supportedGenerationMethods||[]).indexOf('generateContent')>=0;})
+        .map(function(m){return (m.name||'').replace(/^models\//,'');})
+        .filter(function(n){return n&&!/vision|image|embedding|aqa|tts|audio/i.test(n);});
+      var flash=ok.filter(function(n){return /flash/i.test(n)&&!/thinking|preview|exp/i.test(n);});
+      discovered=(flash.length?flash:ok);
+      return discovered;
+    }catch(e){return [];}
+  }
+  async function geminiFetch(body){
+    var key=getKey(); if(!key){throw {nokey:true};}
+    var chain=[];
+    [getModel(),'gemini-flash-latest','gemini-2.0-flash','gemini-2.5-flash-lite','gemini-1.5-flash'].forEach(function(m){if(m&&chain.indexOf(m)<0)chain.push(m);});
+    var lastErr,didDiscover=false;
+    for(var i=0;i<chain.length;i++){
+      var res;
+      try{
+        var url='https://generativelanguage.googleapis.com/v1beta/models/'+chain[i]+':generateContent?key='+encodeURIComponent(key);
+        res=await fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(body)});
+      }catch(e){lastErr=e;continue;}
+      if(res.ok)return await res.json();
+      var em='';try{var j=await res.json();em=(j.error&&j.error.message)||'';}catch(e){em='HTTP '+res.status;}
+      lastErr=new Error(em);
+      var modelErr=/not found|404|not supported|unsupported|no longer available|not available|update your code/i.test(em);
+      var quotaErr=/quota|429|RESOURCE_EXHAUSTED|free_tier/i.test(em);
+      if(modelErr&&!didDiscover){didDiscover=true;var d=await listModels();d.forEach(function(x){if(chain.indexOf(x)<0)chain.push(x);});}
+      else if(!modelErr&&!quotaErr)break;
+    }
+    throw lastErr||new Error('Request failed');
+  }
+  function friendlyErr(m){m=String((m&&m.message)||m||'');
+    if(/quota|rate limit|429|RESOURCE_EXHAUSTED|free_tier/i.test(m))return 'Gemini’s free limit was hit for the moment. Wait a minute and try again — or pick a different model under “Gemini key”. (The free tier allows only a limited number of requests per minute/day.)';
+    if(/API key not valid|API_KEY_INVALID|invalid.*key|PERMISSION_DENIED|permission/i.test(m))return 'That API key wasn’t accepted. Re-check it under “Gemini key”.';
+    if(/not found|404|not supported|unsupported|no longer available|update your code/i.test(m))return 'No usable model was found on your key. Open “Gemini key” and pick another model (or re-create a fresh free key).';
+    return 'Couldn’t reach Gemini: '+m;
+  }
+  async function callGemini(prompt){
+    var sys="You are Lex, a precise Indian law tutor helping a law lecturer (LLM, Corporate Law). Answer in Indian legal context. Be accurate and concise. Cite the relevant statute/section or landmark case where useful. Use short paragraphs or bullets. If a point is uncertain or contested, say so briefly. Do not fabricate case names or citations.";
+    var data=await geminiFetch({contents:[{role:'user',parts:[{text:prompt}]}],systemInstruction:{parts:[{text:sys}]},generationConfig:{temperature:0.4}});
+    var c=data.candidates&&data.candidates[0];
+    if(!c){throw new Error('No response — the prompt may have been blocked.');}
+    return (c.content&&c.content.parts||[]).map(function(p){return p.text||''}).join('');
+  }
+
+  var busy=false;
+  async function ask(q,opts){
+    q=(q||'').trim();if(!q||busy)return;
+    opts=opts||{};
+    if(!opts.silent)addMsg('u',esc(q));
+    if(!opts.keep){$('#ask').value='';autoSize();}
+    if(!getKey()){addMsg('a err','Add your free Gemini key first — click “Gemini key” at the top. Get one at aistudio.google.com/apikey.');$('#keyBtn').click();return;}
+    busy=true;$('#send').disabled=true;
+    var wantEx=opts.example||$('#askEx').checked;
+    var prompt=q+(wantEx?'\n\nInclude a clear, concrete worked example — hypothetical facts, an illustration, or a decided case — that makes this easy to teach and remember.':'');
+    var think=document.createElement('div');think.className='thinking';think.innerHTML='<span></span><span></span><span></span>';thread.appendChild(think);thread.scrollTop=thread.scrollHeight;
+    try{
+      var ans=await callGemini(prompt);
+      think.remove();
+      var m=addMsg('a',mdlite(ans));
+      var ins=document.createElement('button');ins.className='insert';ins.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg>Insert into note';
+      ins.onclick=function(){insertIntoNote(q,ans);};m.appendChild(ins);
+      if(!opts.example){
+        var exb=document.createElement('button');exb.className='example';exb.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.6.6 1 1.3 1 2.5h6c0-1.2.4-1.9 1-2.5A6 6 0 0 0 12 3z" stroke-linecap="round" stroke-linejoin="round"/></svg>See an example';
+        exb.onclick=function(){exb.disabled=true;exb.textContent='…';ask('Give a concrete, teachable example that illustrates: '+q,{silent:true,example:true});};
+        m.appendChild(exb);
+      }
+    }catch(err){
+      think.remove();
+      if(err&&err.nokey){addMsg('a err','Add your free Gemini key first — click “Gemini key” at the top.');}
+      else{addMsg('a err',esc(friendlyErr(err)));}
+    }finally{busy=false;$('#send').disabled=false;}
+  }
+  function insertIntoNote(q,ans){
+    if(!cur()){$('#newNote').click();}
+    var b=$('#ebody');
+    b.innerHTML=b.innerHTML+'<h4>'+esc(q)+'</h4>'+mdlite(ans);
+    touch();b.scrollTop=b.scrollHeight;
+    toast('Inserted into your note.');
+  }
+
+  $('#send').onclick=function(){ask($('#ask').value);};
+  var ta=$('#ask');
+  function autoSize(){ta.style.height='auto';ta.style.height=Math.min(ta.scrollHeight,90)+'px';}
+  ta.addEventListener('input',autoSize);
+  ta.addEventListener('keydown',function(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();ask(ta.value);}});
+
+  /* law topics */
+  var TOPICS=['Fundamental rights','Article 21','Basic structure doctrine','Directive Principles','Doctrine of frustration','Consideration','Promissory estoppel','Lifting the corporate veil','Doctrine of ultra vires','Nuisance (tort)','Negligence','Vicarious liability','Mens rea','Doctrine of severability','Res judicata','Natural justice','Judicial review','Separation of powers','Anticipatory bail','Specific performance'];
+  var tc=$('#tchips');
+  TOPICS.forEach(function(t){var c=document.createElement('button');c.className='tchip';c.textContent=t;c.onclick=function(){ask('Explain: '+t+' (Indian law) — key rule, leading case, and a one-line exam-ready summary.');};tc.appendChild(c);});
+
+  /* ========== UGC-NET PREP ========== */
+  var EX_TOPICS=['Fundamental rights','Directive Principles','Basic structure doctrine','Article 21','Judicial review','Doctrine of frustration','Consideration','Promissory estoppel','Lifting the corporate veil','Doctrine of ultra vires','Negligence (tort)','Vicarious liability','Nuisance','Mens rea','Natural justice','Res judicata','Separation of powers','Jurisprudence — schools of thought','Specific relief','Administrative law'];
+  var dl=$('#exmTopics'); EX_TOPICS.forEach(function(t){var o=document.createElement('option');o.value=t;dl.appendChild(o);});
+
+  var SAMPLE=[
+    {q:'The doctrine of “basic structure” of the Constitution was propounded by the Supreme Court in which case?',options:['Golaknath v. State of Punjab','Kesavananda Bharati v. State of Kerala','A.K. Gopalan v. State of Madras','Maneka Gandhi v. Union of India'],answer:1,explanation:'Kesavananda Bharati (1973) held that Parliament cannot alter the basic structure of the Constitution.',topic:'Basic structure doctrine'},
+    {q:'Which Article of the Constitution guarantees the right to constitutional remedies?',options:['Article 19','Article 21','Article 32','Article 44'],answer:2,explanation:'Article 32 lets a person move the Supreme Court to enforce fundamental rights; Dr Ambedkar called it the “heart and soul” of the Constitution.',topic:'Fundamental rights'},
+    {q:'The maxim “Audi alteram partem” means:',options:['No one can be a judge in their own cause','Hear the other side','Where there is a right there is a remedy','Ignorance of law is no excuse'],answer:1,explanation:'It is a rule of natural justice requiring that both sides be heard before a decision.',topic:'Natural justice'},
+    {q:'Under the Indian Contract Act, 1872, the doctrine of frustration is dealt with under which section?',options:['Section 23','Section 56','Section 73','Section 124'],answer:1,explanation:'Section 56 renders an agreement to do an impossible act void, and covers subsequent impossibility (frustration).',topic:'Doctrine of frustration'},
+    {q:'The retirement age of a judge of a High Court in India is:',options:['60 years','62 years','65 years','No fixed age'],answer:1,explanation:'A High Court judge holds office until 62; a Supreme Court judge until 65.',topic:'Constitutional law'},
+    {q:'Which Article of the Constitution abolishes untouchability?',options:['Article 14','Article 15','Article 17','Article 23'],answer:2,explanation:'Article 17 abolishes untouchability and forbids its practice in any form.',topic:'Fundamental rights'},
+    {q:'The concept of “Rule of Law” is chiefly associated with which jurist?',options:['Roscoe Pound','A.V. Dicey','John Austin','H.L.A. Hart'],answer:1,explanation:'A.V. Dicey expounded the Rule of Law in his work on the English Constitution.',topic:'Jurisprudence — schools of thought'},
+    {q:'How many Fundamental Duties are presently enumerated in the Constitution of India?',options:['10','11','12','9'],answer:1,explanation:'Originally 10 (42nd Amendment); the 86th Amendment added the 11th, on education.',topic:'Fundamental rights'},
+    {q:'In research methodology, a hypothesis is best described as:',options:['A proven conclusion','A tentative, testable statement about variables','A summary of findings','A statistical error'],answer:1,explanation:'A hypothesis is a tentative proposition, subject to empirical testing.',topic:'Research aptitude'},
+    {q:'A quiz conducted during a unit to guide further teaching is an example of:',options:['Summative assessment','Formative assessment','Norm-referenced testing','Diagnostic labelling'],answer:1,explanation:'Formative assessment happens during learning to shape ongoing teaching, unlike summative (end) assessment.',topic:'Teaching aptitude'},
+    {q:'The Indian Penal Code, 1860 came into force on:',options:['1 January 1860','1 January 1862','1 January 1872','15 August 1947'],answer:1,explanation:'Though enacted in 1860, the IPC came into force on 1 January 1862.',topic:'Criminal law'},
+    {q:'The maxim “Actus non facit reum nisi mens sit rea” means:',options:['Let the buyer beware','An act does not make one guilty unless the mind is also guilty','No one is above the law','A right implies a remedy'],answer:1,explanation:'It expresses that criminal liability generally needs both a guilty act (actus reus) and a guilty mind (mens rea).',topic:'Mens rea'},
+    {q:'Which writ is issued to produce a detained person before the court?',options:['Mandamus','Certiorari','Habeas corpus','Quo warranto'],answer:2,explanation:'Habeas corpus (“you may have the body”) tests the legality of a person’s detention.',topic:'Fundamental rights'},
+    {q:'Consideration is defined in which section of the Indian Contract Act, 1872?',options:['Section 2(d)','Section 10','Section 23','Section 56'],answer:0,explanation:'Section 2(d) defines consideration; Section 25 states that an agreement without consideration is generally void.',topic:'Consideration'},
+    {q:'An agreement with a minor under the Indian Contract Act is:',options:['Valid','Voidable at the minor’s option','Void ab initio','Enforceable after majority'],answer:2,explanation:'Mohori Bibee v. Dharmodas Ghose held a minor’s agreement void ab initio.',topic:'Consideration'},
+    {q:'The doctrine of “res ipsa loquitur” is applied in the law of:',options:['Contract','Torts','Property','Evidence only'],answer:1,explanation:'“The thing speaks for itself” shifts the burden in negligence (tort) cases where the accident implies negligence.',topic:'Negligence (tort)'},
+    {q:'The minimum age to be eligible for election as President of India is:',options:['30 years','35 years','40 years','25 years'],answer:1,explanation:'Article 58 requires a minimum age of 35 years.',topic:'Constitutional law'},
+    {q:'The anti-defection provisions are contained in which Schedule of the Constitution?',options:['Ninth Schedule','Tenth Schedule','Eighth Schedule','Seventh Schedule'],answer:1,explanation:'The Tenth Schedule (52nd Amendment, 1985) deals with disqualification on ground of defection.',topic:'Constitutional law'},
+    {q:'The Directive Principles of State Policy are contained in which Part of the Constitution?',options:['Part III','Part IV','Part IVA','Part II'],answer:1,explanation:'Part IV (Articles 36–51) contains the DPSPs; Part IVA holds Fundamental Duties.',topic:'Directive Principles'},
+    {q:'In research methodology, a sample is best described as:',options:['The entire group under study','A subset drawn from the population','An error in measurement','A type of hypothesis'],answer:1,explanation:'A sample is a representative subset selected from the target population.',topic:'Research aptitude'},
+    {q:'Besides the cognitive and psychomotor domains, Bloom’s taxonomy includes which domain?',options:['Affective','Reflective','Normative','Cognitive-behavioural'],answer:0,explanation:'Bloom’s taxonomy covers cognitive, affective and psychomotor domains.',topic:'Teaching aptitude'}
+  ];
+  function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t;}return a;}
+  function pickSample(n){
+    return shuffle(SAMPLE).slice(0,n).map(function(q){
+      var pairs=shuffle(q.options.map(function(o,i){return {o:o,c:i===q.answer};}));
+      return {q:q.q,options:pairs.map(function(x){return x.o;}),answer:pairs.map(function(x){return x.c;}).indexOf(true),explanation:q.explanation,topic:q.topic};
+    });
+  }
+
+  function getTopics(){return JSON.parse(LS.getItem('lex_ex_topics')||'{}');}
+  function getHist(){return JSON.parse(LS.getItem('lex_ex_hist')||'[]');}
+
+  function renderExHome(){
+    var tp=getTopics(),keys=Object.keys(tp).sort(function(a,b){return (tp[b].c/tp[b].t)-(tp[a].c/tp[a].t)});
+    var st=$('#exStrength');
+    if(!keys.length){st.innerHTML='<div class="exempty">Take a quiz and your strengths by topic show up here.</div>';}
+    else{st.innerHTML=keys.slice(0,6).map(function(k){var p=Math.round(tp[k].c/tp[k].t*100);
+      return '<div class="exbarrow"><span>'+esc(k)+'</span><strong>'+p+'%</strong></div><div class="exbar"><span style="width:'+p+'%"></span></div>';}).join('');}
+    var hs=getHist(),h=$('#exHistory');
+    if(!hs.length){h.innerHTML='<div class="exempty">No attempts yet.</div>';}
+    else{h.innerHTML=hs.slice(0,6).map(function(a){
+      return '<div class="exli"><span>'+esc(a.label)+'</span><span class="m">'+a.correct+'/'+a.total+' · '+a.pct+'%</span></div>';}).join('');}
+  }
+
+  /* ----- generation ----- */
+  async function exGenerate(cfg){
+    if(cfg.mode==='sample'){return SAMPLE.slice();}
+    var key=getKey(); if(!key){throw {nokey:true};}
+    var prompt;
+    if(cfg.mode==='pyq'){
+      prompt='Below are previous-year UGC-NET questions.\n"""\n'+cfg.pyq+'\n"""\nStudy their style, difficulty and topics. Write '+cfg.count+' NEW, original multiple-choice questions in the same spirit (do NOT copy them). ';
+    }else{
+      prompt='Write '+cfg.count+' original multiple-choice questions for UGC-NET '+cfg.paper+' on the topic "'+cfg.topic+'" in the Indian legal context, at '+cfg.diff+' difficulty. ';
+    }
+    prompt+='Each must have exactly 4 options and one correct answer. Return ONLY a valid JSON array, no prose, no markdown fences. Each element: {"q":"question text","options":["A","B","C","D"],"answer":0,"explanation":"one-line reason","topic":"short topic name"}. "answer" is the 0-based index of the correct option. Do not invent fake case names or citations.';
+    var data=await geminiFetch({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{temperature:0.6,responseMimeType:'application/json'}});
+    var txt=((data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[]).map(function(p){return p.text||''}).join('');
+    return parseQuiz(txt);
+  }
+  function parseQuiz(t){
+    t=(t||'').trim().replace(/^```(json)?/i,'').replace(/```$/,'').trim();
+    var s=t.indexOf('['),e=t.lastIndexOf(']'); if(s>=0&&e>s)t=t.slice(s,e+1);
+    var arr=JSON.parse(t);
+    return arr.map(function(o){
+      var opts=(o.options||o.choices||[]).map(String);
+      var a=o.answer!==undefined?o.answer:o.correct;
+      if(typeof a==='string'){var u=a.trim().toUpperCase();
+        if(/^[A-D]$/.test(u))a=u.charCodeAt(0)-65;
+        else{var ix=opts.map(function(x){return x.toLowerCase()}).indexOf(a.trim().toLowerCase());a=ix>=0?ix:0;}}
+      a=Math.max(0,Math.min(opts.length-1,parseInt(a,10)||0));
+      return {q:String(o.q||o.question||''),options:opts,answer:a,explanation:String(o.explanation||o.explain||''),topic:String(o.topic||'General')};
+    }).filter(function(q){return q.q&&q.options.length>=2;});
+  }
+
+  /* ----- setup modal ----- */
+  var exCfg={mode:'topic'};
+  function openSetup(mode){
+    exCfg.mode=mode;
+    $('#exmTopicWrap').style.display=mode==='topic'?'block':'none';
+    $('#exmPyqWrap').style.display=mode==='pyq'?'block':'none';
+    $('#exmTitle').textContent=mode==='pyq'?'Questions from PYQs':'Practice a topic';
+    $('#exmDesc').textContent=mode==='pyq'?'Paste past questions — Gemini studies them and writes new, similar ones.':'Gemini generates fresh questions on the topic you choose.';
+    var h=$('#exmHint');h.classList.remove('err');h.textContent='Timed at ~1 minute per question. You can submit early.';
+    $('#exModal').classList.add('on');
+    if(mode==='topic')$('#exmTopic').focus();else $('#exmPyq').focus();
+  }
+  $('#exPractice').onclick=function(){openSetup('topic');};
+  $('#exPyq').onclick=function(){openSetup('pyq');};
+  $('#exmCancel').onclick=function(){$('#exModal').classList.remove('on');};
+  $('#exModal').addEventListener('click',function(e){if(e.target===$('#exModal'))$('#exModal').classList.remove('on');});
+  $('#exQuick').onclick=function(){startTest(pickSample(10),'Quick mock');};
+  $('#exmPyqUpload').onclick=function(){$('#exmPyqFile').click();};
+  $('#exmPyqFile').addEventListener('change',async function(e){
+    var f=e.target.files&&e.target.files[0];if(!f)return;e.target.value='';
+    var ext=(f.name.split('.').pop()||'').toLowerCase();
+    var h=$('#exmHint');h.classList.remove('err');h.textContent='Reading '+f.name+'…';
+    try{
+      var text;
+      if(ext==='pdf'){text=await extractPdf(await readBuf(f));}
+      else if(ext==='docx'||ext==='doc'){text=await extractDocx(await readBuf(f));}
+      else{text=await readTxt(f);}
+      if(!text){h.classList.add('err');h.textContent='No readable text found — the file may be a scanned image.';return;}
+      var ta=$('#exmPyq');ta.value=(ta.value?ta.value+'\n\n':'')+text;
+      h.textContent='Loaded '+text.length.toLocaleString()+' characters from '+f.name+'. Pick a count and generate.';
+    }catch(err){h.classList.add('err');h.textContent=(err&&err.message)||'Couldn’t read that file.';}
+  });
+
+  $('#exmStart').onclick=async function(){
+    var count=parseInt($('#exmCount').value,10);
+    var cfg={mode:exCfg.mode,count:count,diff:$('#exmDiff').value,paper:$('#exmPaper').value,topic:$('#exmTopic').value.trim(),pyq:$('#exmPyq').value.trim()};
+    if(cfg.mode==='topic'&&!cfg.topic){$('#exmHint').textContent='Enter a topic to continue.';return;}
+    if(cfg.mode==='pyq'&&cfg.pyq.length<20){$('#exmHint').textContent='Paste at least a couple of questions first.';return;}
+    if(!getKey()){$('#exModal').classList.remove('on');$('#keyBtn').click();return;}
+    var btn=$('#exmStart');btn.textContent='Generating…';btn.disabled=true;$('#exmHint').textContent='Gemini is writing your questions…';
+    try{
+      var qs=await exGenerate(cfg);
+      if(!qs.length)throw new Error('No questions came back — try again.');
+      $('#exModal').classList.remove('on');
+      startTest(qs,cfg.mode==='pyq'?'PYQ practice':cfg.topic);
+    }catch(err){
+      var h=$('#exmHint');h.classList.add('err');
+      h.textContent=err&&err.nokey?'Add your free Gemini key first.':friendlyErr(err);
+    }finally{btn.textContent='Generate & start';btn.disabled=false;}
+  };
+
+  /* ----- test engine ----- */
+  var E=null, exTimer=null;
+  function showExPane(id){['exHome','exTest','exResult'].forEach(function(x){$('#'+x).style.display=x===id?'block':'none';});$('.exwrap').scrollTop=0;}
+  function startTest(qs,label){
+    E={qs:qs,ans:qs.map(function(){return null;}),marked:{},i:0,label:label,left:qs.length*60};
+    $('#exTestLabel').textContent=label;$('#exTestSub').textContent='UGC-NET · '+qs.length+' questions';
+    showExPane('exTest');renderQ();renderGrid();
+    clearInterval(exTimer);tick();exTimer=setInterval(tick,1000);
+  }
+  function tick(){
+    if(!E)return;
+    var t=$('#exTimer'),m=Math.floor(E.left/60),s=E.left%60;
+    t.textContent=(m<10?'0':'')+m+':'+(s<10?'0':'')+s;
+    t.classList.toggle('warn',E.left<=60);
+    if(E.left<=0){clearInterval(exTimer);grade();return;}
+    E.left--;
+  }
+  function renderQ(){
+    var q=E.qs[E.i];
+    $('#exQn').textContent='Question '+(E.i+1)+' of '+E.qs.length;
+    $('#exQt').textContent=q.q;
+    var box=$('#exOpts');box.innerHTML='';
+    q.options.forEach(function(opt,k){
+      var d=document.createElement('div');d.className='exopt'+(E.ans[E.i]===k?' sel':'');
+      d.innerHTML='<span class="k">'+String.fromCharCode(65+k)+'</span><span></span>';
+      d.querySelector('span:last-child').textContent=opt;
+      d.onclick=function(){E.ans[E.i]=k;renderQ();renderGrid();};
+      box.appendChild(d);
+    });
+    $('#exMark').textContent=E.marked[E.i]?'Unmark':'Mark for review';
+    $('#exPrev').style.visibility=E.i===0?'hidden':'visible';
+    $('#exNext').textContent=E.i===E.qs.length-1?'Last question':'Next';
+  }
+  function renderGrid(){
+    var g=$('#exGrid');g.innerHTML='';
+    E.qs.forEach(function(q,k){
+      var b=document.createElement('button');b.textContent=k+1;
+      if(E.ans[k]!==null)b.className='ans';
+      if(E.marked[k])b.className='mark';
+      if(k===E.i)b.className+=' cur';
+      b.onclick=function(){E.i=k;renderQ();renderGrid();};
+      g.appendChild(b);
+    });
+  }
+  $('#exPrev').onclick=function(){if(E.i>0){E.i--;renderQ();renderGrid();}};
+  $('#exNext').onclick=function(){if(E.i<E.qs.length-1){E.i++;renderQ();renderGrid();}};
+  $('#exMark').onclick=function(){E.marked[E.i]=!E.marked[E.i];renderQ();renderGrid();};
+  $('#exExit').onclick=function(){if(confirm('Leave this test? Your progress will be lost.')){clearInterval(exTimer);E=null;showExPane('exHome');}};
+  $('#exSubmit').onclick=function(){var un=E.ans.filter(function(a){return a===null;}).length;if(un&&!confirm(un+' question(s) not answered. Submit anyway?'))return;grade();};
+
+  function grade(){
+    clearInterval(exTimer);
+    var correct=0,wrong=0,skip=0,tp=getTopics();
+    E.qs.forEach(function(q,k){
+      var a=E.ans[k];
+      if(a===null){skip++;}
+      else if(a===q.answer){correct++;}
+      else{wrong++;}
+      var t=q.topic||'General';tp[t]=tp[t]||{c:0,t:0};tp[t].t++;if(a===q.answer)tp[t].c++;
+    });
+    LS.setItem('lex_ex_topics',JSON.stringify(tp));
+    var pct=Math.round(correct/E.qs.length*100);
+    var hist=getHist();hist.unshift({ts:Date.now(),label:E.label,total:E.qs.length,correct:correct,pct:pct});
+    LS.setItem('lex_ex_hist',JSON.stringify(hist.slice(0,40)));
+    renderResult(correct,wrong,skip,pct);
+  }
+  function renderResult(correct,wrong,skip,pct){
+    $('#exResLabel').textContent=E.label+' · complete';
+    $('#exResCorrect').textContent=correct;$('#exResWrong').textContent=wrong;$('#exResSkip').textContent=skip;
+    $('#exRingArc').setAttribute('stroke-dasharray',pct+' '+(100-pct));
+    $('#exRingPct').textContent=pct+'%';$('#exRingFrac').textContent=correct+' / '+E.qs.length;
+    var rev=$('#exReview');rev.innerHTML='';
+    E.qs.forEach(function(q,k){
+      var a=E.ans[k];
+      var wrap=document.createElement('div');wrap.className='exrevq';
+      var opts=q.options.map(function(opt,j){
+        var cls='exopt rev';if(j===q.answer)cls+=' correct';else if(j===a)cls+=' wrong';
+        return '<div class="'+cls+'"><span class="k">'+String.fromCharCode(65+j)+'</span><span>'+esc(opt)+'</span></div>';
+      }).join('');
+      wrap.innerHTML='<div class="exrq">'+(k+1)+'. '+esc(q.q)+'</div>'+opts+
+        (q.explanation?'<div class="exexp"><b>Why:</b> '+esc(q.explanation)+'</div>':'');
+      rev.appendChild(wrap);
+    });
+    showExPane('exResult');
+  }
+  $('#exBack').onclick=function(){E=null;renderExHome();showExPane('exHome');};
+
+  /* init */
+  /* ========== RESUME BUILDER ========== */
+  var RESUME_CSS=".r-name{font-size:23px;font-weight:bold;font-family:Georgia,'Times New Roman',serif;color:#111;letter-spacing:.2px}"
+    +".r-title{font-size:13px;color:#444;margin-top:3px;font-family:Georgia,serif}"
+    +".r-contact{font-size:11px;color:#333;margin-top:7px}"
+    +".r-sec{margin-top:17px}"
+    +".r-sec-h{font-size:11.5px;font-weight:bold;letter-spacing:1.2px;text-transform:uppercase;border-bottom:1px solid #888;padding-bottom:3px;margin-bottom:8px;color:#1a1a1a}"
+    +".r-entry{margin-bottom:10px}"
+    +".r-eh{font-size:12.5px;color:#111}.r-eh strong{font-weight:bold}"
+    +".r-meta{font-size:11px;color:#555;margin-top:1px}"
+    +".r-bullets{margin:4px 0 0;padding-left:17px}.r-bullets li{font-size:11.5px;margin-bottom:2px;color:#222;line-height:1.45}"
+    +".r-p{font-size:11.5px;color:#222;line-height:1.5}";
+  (function(){var s=document.createElement('style');s.textContent=RESUME_CSS;document.head.appendChild(s);})();
+
+  var TEMPLATES={
+    academic:{label:'Academic / Assistant Professor',pubLabel:'Publications & presentations',sample:{
+      name:'Anwesha Mishra',title:'Assistant Professor of Law — Corporate Law',email:'anwesha.mishra@email.com',phone:'+91 90000 00000',location:'Bhubaneswar, Odisha',links:'linkedin.com/in/anwesha-mishra',
+      summary:'Law educator with an LL.M. in Corporate Law and UGC-NET (Law) qualification, and hands-on teaching experience across undergraduate law programmes. Strengths in corporate and constitutional law, legal research, and mentoring students for competitive examinations and moot courts.',
+      education:[{degree:'LL.M., Corporate Law',org:'National Law University',year:'2021',note:'First Division'},{degree:'B.A. LL.B. (Hons.)',org:'University Law College',year:'2019',note:'Gold Medalist'}],
+      experience:[{role:'Guest Faculty of Law',org:'ABC Law College',period:'2022 – Present',bullets:'Teach Company Law, Law of Contract and Constitutional Law to LL.B. students\nSet question papers, internal assessments and moot problems\nMentor students preparing for UGC-NET and judicial services examinations'},{role:'Research Associate',org:'Centre for Corporate Law Studies',period:'2021 – 2022',bullets:'Assisted faculty research on corporate governance and insolvency\nCompiled case digests and edited working papers'}],
+      publications:'“Lifting the Corporate Veil under the Companies Act, 2013”, XYZ Law Review, Vol. 12, 2023\nPaper presented at the National Seminar on Corporate Governance, National Law University, 2022',
+      skills:'Corporate Law, Constitutional Law, Legal Research, Academic Writing, Moot Court Coaching, Curriculum Design',
+      certs:'UGC-NET (Law), 2022\nCertificate Course in Cyber Law, 2021',
+      extra:'Member, Indian Law Institute\nLanguages: English, Hindi, Odia'}},
+    corporate:{label:'Corporate / In-house Counsel',pubLabel:'Key transactions & advisory',sample:{
+      name:'Your Name',title:'Corporate / In-house Counsel',email:'you@email.com',phone:'+91 90000 00000',location:'City, India',links:'linkedin.com/in/your-name',
+      summary:'Corporate lawyer with an LL.M. in Corporate Law and experience advising on transactions, compliance and commercial contracts. Focused on practical, business-aligned legal solutions.',
+      education:[{degree:'LL.M., Corporate Law',org:'National Law University',year:'2021',note:''},{degree:'B.A. LL.B. (Hons.)',org:'University Law College',year:'2019',note:''}],
+      experience:[{role:'Legal Associate',org:'Law Firm / Company',period:'2021 – Present',bullets:'Draft and vet commercial contracts, NDAs and vendor agreements\nAdvise business teams on Companies Act and SEBI compliance\nSupport due diligence for M&A and financing transactions'}],
+      publications:'Advised on a ₹50 crore share purchase transaction, 2023\nStandardised the company’s contract templates and compliance checklist',
+      skills:'Contract Drafting, Corporate Compliance, Due Diligence, Company Law, SEBI Regulations, Negotiation',
+      certs:'Certificate in Mergers & Acquisitions, 2022',
+      extra:'Enrolled with the Bar Council of India\nLanguages: English, Hindi'}},
+    litigation:{label:'Litigation / Advocate',pubLabel:'Representative matters',sample:{
+      name:'Your Name',title:'Advocate — Litigation',email:'you@email.com',phone:'+91 90000 00000',location:'City, India',links:'',
+      summary:'Advocate enrolled with the Bar Council, with experience in civil and criminal litigation, drafting and court appearances. Strong legal research and client counselling skills.',
+      education:[{degree:'B.A. LL.B. (Hons.)',org:'University Law College',year:'2020',note:''},{degree:'Senior Secondary (XII)',org:'School Name',year:'2015',note:''}],
+      experience:[{role:'Advocate',org:'Chambers of [Senior Advocate]',period:'2020 – Present',bullets:'Draft plaints, written statements, bail applications and writ petitions\nAppear before District Courts and the High Court\nConduct legal research and prepare briefs for hearings'}],
+      publications:'Handled 100+ civil and criminal matters at the trial stage\nAssisted in a writ petition before the High Court on service law',
+      skills:'Civil Litigation, Criminal Litigation, Legal Drafting, Court Craft, Client Counselling, Legal Research',
+      certs:'Enrolled with the Bar Council of India, 2020',
+      extra:'Languages: English, Hindi'}},
+    fresher:{label:'Fresher / Law Graduate',pubLabel:'Moot courts, internships & projects',sample:{
+      name:'Your Name',title:'Law Graduate',email:'you@email.com',phone:'+91 90000 00000',location:'City, India',links:'linkedin.com/in/your-name',
+      summary:'Recent law graduate with strong academics, moot court experience and internships across litigation and corporate practice. Eager to build a career in [chosen field].',
+      education:[{degree:'B.A. LL.B. (Hons.)',org:'University Law College',year:'2024',note:'CGPA 8.2/10'},{degree:'Senior Secondary (XII)',org:'School Name',year:'2019',note:''}],
+      experience:[{role:'Legal Intern',org:'Law Firm',period:'Summer 2023',bullets:'Assisted associates with legal research and case briefs\nDrafted memos on contract and consumer law'},{role:'Judicial Intern',org:'District Court',period:'2022',bullets:'Observed trial proceedings and assisted with case files under a Senior Advocate'}],
+      publications:'Semi-finalist, National Moot Court Competition, 2023\nResearch project on Right to Privacy and Article 21',
+      skills:'Legal Research, Legal Writing, Moot Court, MS Office, Time Management',
+      certs:'Certificate in Contract Drafting (online), 2023',
+      extra:'Languages: English, Hindi'}},
+    professor:{label:'Senior Professor / HOD',pubLabel:'Publications, books & funded projects',sample:{
+      name:'Your Name',title:'Professor & Head, Department of Law',email:'you@university.edu',phone:'+91 90000 00000',location:'City, India',links:'orcid.org/0000-0000 · linkedin.com/in/your-name',
+      summary:'Professor of Law with a Ph.D. and 15+ years of teaching, research and academic administration. Proven record in doctoral supervision, curriculum development, NAAC/NBA accreditation and securing funded research. Specialisation in Corporate and Constitutional Law.',
+      education:[{degree:'Ph.D. in Law',org:'National Law University',year:'2012',note:'Thesis on Corporate Governance'},{degree:'LL.M.',org:'University Law College',year:'2007',note:''},{degree:'B.A. LL.B. (Hons.)',org:'University Law College',year:'2005',note:''}],
+      experience:[{role:'Professor & Head of Department',org:'University School of Law',period:'2018 – Present',bullets:'Lead a faculty of 20 and design LL.B., LL.M. and Ph.D. curricula\nSupervise 8 Ph.D. scholars; chair the Departmental Research Committee\nCoordinated NAAC accreditation and MoUs with foreign universities'},{role:'Associate Professor',org:'University School of Law',period:'2012 – 2018',bullets:'Taught Company Law, Jurisprudence and Constitutional Law\nEstablished the moot court society and legal aid clinic'}],
+      publications:'Authored “Corporate Governance in India” (Eastern Book Company, 2020)\n25+ articles in UGC-CARE and peer-reviewed journals\nPrincipal Investigator, ICSSR-funded project on Insolvency Law, 2019–2021',
+      skills:'Doctoral Supervision, Curriculum Design, Legal Research, Academic Administration, NAAC/NBA Accreditation, Grant Writing',
+      certs:'UGC-NET & JRF (Law)\nMember, Board of Studies, several universities',
+      extra:'Editorial Board, XYZ Law Review\nLanguages: English, Hindi'}},
+    cs:{label:'Company Secretary / Compliance',pubLabel:'Key compliance & governance work',sample:{
+      name:'Your Name',title:'Company Secretary & Compliance Officer',email:'you@email.com',phone:'+91 90000 00000',location:'City, India',links:'linkedin.com/in/your-name',
+      summary:'Qualified Company Secretary (ACS) with an LL.B., experienced in corporate secretarial practice, ROC filings, board processes and SEBI/Companies Act compliance for listed and unlisted companies.',
+      education:[{degree:'ACS — Company Secretary',org:'Institute of Company Secretaries of India (ICSI)',year:'2019',note:''},{degree:'LL.B.',org:'University Law College',year:'2018',note:''},{degree:'B.Com',org:'City College',year:'2015',note:''}],
+      experience:[{role:'Company Secretary',org:'Company Name Ltd.',period:'2020 – Present',bullets:'Convene board and general meetings; draft agendas, notices and minutes\nFile forms with the ROC/MCA and ensure Companies Act, 2013 compliance\nManage SEBI (LODR) disclosures and secretarial audit'}],
+      publications:'Implemented a company-wide compliance calendar reducing late filings to nil\nManaged the secretarial work for a rights issue',
+      skills:'Corporate Governance, ROC/MCA Filings, Companies Act 2013, SEBI (LODR), Secretarial Audit, Minutes Drafting, Due Diligence',
+      certs:'Associate Member, ICSI\nCertificate in CSR',
+      extra:'Languages: English, Hindi'}},
+    judicial:{label:'Judicial Services / Law Officer',pubLabel:'Achievements & selections',sample:{
+      name:'Your Name',title:'Judicial Services Aspirant / Law Officer',email:'you@email.com',phone:'+91 90000 00000',location:'City, India',links:'',
+      summary:'Law graduate with strong command of substantive and procedural law (CPC, CrPC, Evidence, IPC) preparing for judicial services, with internship experience in courts and chambers. Disciplined, research-driven and articulate.',
+      education:[{degree:'B.A. LL.B. (Hons.)',org:'University Law College',year:'2023',note:'First Division'},{degree:'Senior Secondary (XII)',org:'School Name',year:'2018',note:''}],
+      experience:[{role:'Judicial Intern',org:'District & Sessions Court',period:'2022',bullets:'Assisted in framing of charges and observed civil and criminal trials\nPrepared case summaries under the guidance of the Presiding Officer'},{role:'Intern',org:'Chambers of a Senior Advocate',period:'2021',bullets:'Drafted bail applications and written statements\nResearched precedents on service and constitutional matters'}],
+      publications:'Cleared preliminary examination, State Judicial Services, 2023\nRank holder in the university\'s internal moot',
+      skills:'Civil Procedure Code, Criminal Procedure Code, Indian Evidence Act, Legal Drafting, Judgment Writing, Legal Research',
+      certs:'Certificate in Judgment Writing\nNCC “B” Certificate',
+      extra:'Languages: English, Hindi'}}
+  };
+
+  function clone(o){return JSON.parse(JSON.stringify(o));}
+  function escA(s){return String(s==null?'':s).replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+  var R=JSON.parse(LS.getItem('lex_resume')||'null');
+  if(!R){R=clone(TEMPLATES.academic.sample);R.pubLabel=TEMPLATES.academic.pubLabel;R._path='academic';}
+  function saveResume(){LS.setItem('lex_resume',JSON.stringify(R));}
+
+  function rf(label,id,v){return '<div class="resf"><label>'+label+'</label><input class="resin" id="'+id+'" value="'+escA(v)+'"></div>';}
+  function rta(id,v,rows,ph){return '<div class="resf"><textarea class="resin" id="'+id+'" rows="'+rows+'" placeholder="'+escA(ph||'')+'">'+esc(v||'')+'</textarea></div>';}
+  function eduRow(e,i){return '<div class="resrow"><button class="resdel" data-act="delEdu" data-i="'+i+'" title="Remove">&times;</button>'
+    +'<div class="resf"><label>Degree / qualification</label><input class="resin" data-s="education" data-i="'+i+'" data-f="degree" value="'+escA(e.degree)+'"></div>'
+    +'<div class="res2"><div class="resf"><label>Institution</label><input class="resin" data-s="education" data-i="'+i+'" data-f="org" value="'+escA(e.org)+'"></div>'
+    +'<div class="resf" style="max-width:120px"><label>Year</label><input class="resin" data-s="education" data-i="'+i+'" data-f="year" value="'+escA(e.year)+'"></div></div>'
+    +'<div class="resf"><label>Note (optional)</label><input class="resin" data-s="education" data-i="'+i+'" data-f="note" value="'+escA(e.note)+'"></div></div>';}
+  function expRow(x,i){return '<div class="resrow"><button class="resdel" data-act="delExp" data-i="'+i+'" title="Remove">&times;</button>'
+    +'<div class="res2"><div class="resf"><label>Role / designation</label><input class="resin" data-s="experience" data-i="'+i+'" data-f="role" value="'+escA(x.role)+'"></div>'
+    +'<div class="resf"><label>Organisation</label><input class="resin" data-s="experience" data-i="'+i+'" data-f="org" value="'+escA(x.org)+'"></div></div>'
+    +'<div class="resf"><label>Period</label><input class="resin" data-s="experience" data-i="'+i+'" data-f="period" value="'+escA(x.period)+'"></div>'
+    +'<div class="resf"><label>Details (one bullet per line)</label><textarea class="resin" rows="3" data-s="experience" data-i="'+i+'" data-f="bullets">'+esc(x.bullets||'')+'</textarea></div></div>';}
+
+  function renderResumeEditor(){
+    var e=document.getElementById('resEditor');
+    e.innerHTML=
+      '<div class="resgrp"><div class="gh"><span>Header</span></div>'
+        +rf('Full name','resName',R.name)+rf('Professional title','resTitle',R.title)
+        +'<div class="res2"><div>'+rf('Email','resEmail',R.email)+'</div><div>'+rf('Phone','resPhone',R.phone)+'</div></div>'
+        +'<div class="res2"><div>'+rf('Location','resLoc',R.location)+'</div><div>'+rf('LinkedIn / website','resLinks',R.links)+'</div></div>'
+      +'</div>'
+      +'<div class="resgrp"><div class="gh"><span>Professional summary</span></div>'+rta('resSummary',R.summary,3,'2–3 lines about your strengths')+'</div>'
+      +'<div class="resgrp"><div class="gh"><span>Education</span><button class="resaddbtn" data-act="addEdu">+ Add</button></div>'+R.education.map(eduRow).join('')+'</div>'
+      +'<div class="resgrp"><div class="gh"><span>Experience</span><button class="resaddbtn" data-act="addExp">+ Add</button></div>'+R.experience.map(expRow).join('')+'</div>'
+      +'<div class="resgrp"><div class="gh"><span>'+esc(R.pubLabel||'Publications & research')+'</span></div>'+rta('resPub',R.publications,4,'One item per line')+'</div>'
+      +'<div class="resgrp"><div class="gh"><span>Key skills</span></div>'+rta('resSkills',R.skills,2,'Comma or line separated')+'</div>'
+      +'<div class="resgrp"><div class="gh"><span>Certifications & achievements</span></div>'+rta('resCerts',R.certs,3,'One per line')+'</div>'
+      +'<div class="resgrp"><div class="gh"><span>Additional (memberships, languages…)</span></div>'+rta('resExtra',R.extra,3,'One per line')+'</div>';
+  }
+  function gv(id){var el=document.getElementById(id);return el?el.value:'';}
+  function readRows(sec,fields){
+    var rows={};
+    document.querySelectorAll('#resEditor [data-s="'+sec+'"]').forEach(function(inp){
+      var i=inp.getAttribute('data-i'),f=inp.getAttribute('data-f');
+      rows[i]=rows[i]||{};rows[i][f]=inp.value;
+    });
+    return Object.keys(rows).sort(function(a,b){return a-b;}).map(function(k){var o={};fields.forEach(function(f){o[f]=rows[k][f]||'';});return o;});
+  }
+  function collectResume(){
+    R.name=gv('resName');R.title=gv('resTitle');R.email=gv('resEmail');R.phone=gv('resPhone');R.location=gv('resLoc');R.links=gv('resLinks');
+    R.summary=gv('resSummary');R.publications=gv('resPub');R.skills=gv('resSkills');R.certs=gv('resCerts');R.extra=gv('resExtra');
+    R.education=readRows('education',['degree','org','year','note']);
+    R.experience=readRows('experience',['role','org','period','bullets']);
+    saveResume();renderResumePreview();
+  }
+  function hasEdu(e){return e&&(e.degree||e.org);}
+  function hasExp(x){return x&&(x.role||x.org||x.bullets);}
+  function rsec(t,inner){return '<div class="r-sec"><div class="r-sec-h">'+esc(t)+'</div>'+inner+'</div>';}
+  function rlist(txt){return '<ul class="r-bullets">'+txt.split('\n').filter(function(l){return l.trim();}).map(function(l){return '<li>'+esc(l.replace(/^[-•]\s*/,''))+'</li>';}).join('')+'</ul>';}
+  function renderResumePreview(){
+    var p=document.getElementById('resPreview'),h='';
+    h+='<div class="r-name">'+esc(R.name||'Your Name')+'</div>';
+    if(R.title)h+='<div class="r-title">'+esc(R.title)+'</div>';
+    var c=[R.email,R.phone,R.location,R.links].filter(Boolean).map(esc).join('&nbsp;&nbsp;·&nbsp;&nbsp;');
+    if(c)h+='<div class="r-contact">'+c+'</div>';
+    if(R.summary&&R.summary.trim())h+=rsec('Summary','<div class="r-p">'+esc(R.summary)+'</div>');
+    if(R.education&&R.education.some(hasEdu))h+=rsec('Education',R.education.filter(hasEdu).map(function(e){
+      return '<div class="r-entry"><div class="r-eh"><strong>'+esc(e.degree||'')+'</strong></div><div class="r-meta">'+[e.org,e.year].filter(Boolean).map(esc).join(' · ')+(e.note?' · '+esc(e.note):'')+'</div></div>';}).join(''));
+    if(R.experience&&R.experience.some(hasExp))h+=rsec('Experience',R.experience.filter(hasExp).map(function(x){
+      var bl=(x.bullets||'').split('\n').filter(function(l){return l.trim();}).map(function(l){return '<li>'+esc(l.replace(/^[-•]\s*/,''))+'</li>';}).join('');
+      return '<div class="r-entry"><div class="r-eh"><strong>'+esc(x.role||'')+'</strong>'+(x.org?', '+esc(x.org):'')+'</div>'+(x.period?'<div class="r-meta">'+esc(x.period)+'</div>':'')+(bl?'<ul class="r-bullets">'+bl+'</ul>':'')+'</div>';}).join(''));
+    if(R.publications&&R.publications.trim())h+=rsec(R.pubLabel||'Publications & research',rlist(R.publications));
+    if(R.skills&&R.skills.trim()){var sk=R.skills.split(/[\n,]/).map(function(s){return s.trim();}).filter(Boolean).map(esc).join('&nbsp;&nbsp;·&nbsp;&nbsp;');h+=rsec('Key skills','<div class="r-p">'+sk+'</div>');}
+    if(R.certs&&R.certs.trim())h+=rsec('Certifications & achievements',rlist(R.certs));
+    if(R.extra&&R.extra.trim())h+=rsec('Additional',rlist(R.extra));
+    p.innerHTML=h;
+  }
+  function resumeText(){
+    var L=[];L.push((R.name||'').toUpperCase());if(R.title)L.push(R.title);
+    var c=[R.email,R.phone,R.location,R.links].filter(Boolean).join(' | ');if(c)L.push(c);
+    function hd(t){L.push('','== '+t.toUpperCase()+' ==');}
+    if(R.summary&&R.summary.trim()){hd('Summary');L.push(R.summary.trim());}
+    if(R.education&&R.education.some(hasEdu)){hd('Education');R.education.filter(hasEdu).forEach(function(e){L.push((e.degree||'')+' — '+[e.org,e.year].filter(Boolean).join(', ')+(e.note?' ('+e.note+')':''));});}
+    if(R.experience&&R.experience.some(hasExp)){hd('Experience');R.experience.filter(hasExp).forEach(function(x){L.push((x.role||'')+(x.org?', '+x.org:'')+(x.period?' ('+x.period+')':''));(x.bullets||'').split('\n').filter(function(l){return l.trim();}).forEach(function(l){L.push('  - '+l.replace(/^[-•]\s*/,''));});});}
+    if(R.publications&&R.publications.trim()){hd(R.pubLabel||'Publications');R.publications.split('\n').filter(function(l){return l.trim();}).forEach(function(l){L.push('- '+l.trim());});}
+    if(R.skills&&R.skills.trim()){hd('Key skills');L.push(R.skills.split(/[\n,]/).map(function(s){return s.trim();}).filter(Boolean).join(', '));}
+    if(R.certs&&R.certs.trim()){hd('Certifications & achievements');R.certs.split('\n').filter(function(l){return l.trim();}).forEach(function(l){L.push('- '+l.trim());});}
+    if(R.extra&&R.extra.trim()){hd('Additional');R.extra.split('\n').filter(function(l){return l.trim();}).forEach(function(l){L.push('- '+l.trim());});}
+    return L.join('\n');
+  }
+  function exportDoc(){
+    collectResume();
+    var doc='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>@page{margin:16mm}body{font-family:Georgia,serif;color:#111;font-size:12px;line-height:1.5}'+RESUME_CSS+'</style></head><body>'+document.getElementById('resPreview').innerHTML+'</body></html>';
+    var blob=new Blob(['﻿'+doc],{type:'application/msword'});
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=(R.name||'resume').replace(/[^\w]+/g,'_')+'_Resume.doc';
+    document.body.appendChild(a);a.click();setTimeout(function(){a.remove();URL.revokeObjectURL(a.href);},1000);
+    toast('Downloaded Word document.');
+  }
+  /* ----- ATS keyword check ----- */
+  function atsParse(t){
+    t=(t||'').trim().replace(/^```(json)?/i,'').replace(/```$/,'').trim();
+    var s=t.indexOf('{'),e=t.lastIndexOf('}'); if(s>=0&&e>s)t=t.slice(s,e+1);
+    return JSON.parse(t);
+  }
+  async function atsAnalyse(jd){
+    var key=getKey(); if(!key){throw {nokey:true};}
+    var prompt='You are an ATS (applicant tracking system) and legal-recruitment expert. Judge how well the RESUME would pass automated keyword screening for the role in the JOB DESCRIPTION.\n\nRESUME:\n"""\n'+resumeText()+'\n"""\n\nJOB DESCRIPTION:\n"""\n'+jd+'\n"""\n\nReturn ONLY valid JSON, no markdown fences, of this exact shape:\n{"score":<integer 0-100 overall keyword/skill match>,"matched":["skill or keyword from the JD that already appears in the resume", ...],"missing":[{"term":"important keyword/skill/qualification in the JD that is absent or weak in the resume","why":"one short reason it matters for this role"}, ...],"suggestions":["one specific, actionable wording edit to better align the resume", ...]}\nFocus on hard skills, tools, legal domains, qualifications and the exact terms an ATS scans for. Max 12 items per list. Never invent experience the candidate lacks — suggestions must be about wording and emphasis, not fabrication.';
+    var data=await geminiFetch({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{temperature:0.3,responseMimeType:'application/json'}});
+    var txt=((data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[]).map(function(p){return p.text||''}).join('');
+    return atsParse(txt);
+  }
+  function atsColor(n){return n>=75?'var(--good)':n>=50?'var(--warn)':'var(--danger)';}
+  function renderAts(d){
+    var box=document.getElementById('atsResult');
+    var n=Math.max(0,Math.min(100,parseInt(d.score,10)||0)),col=atsColor(n);
+    var cap=n>=75?'Strong match':n>=50?'Partial match — worth tightening':'Weak match — add the keywords below';
+    var h='<div class="ats-score"><div class="ats-num" style="color:'+col+'">'+n+'<small>/100</small></div>'
+      +'<div class="ats-bar"><div class="track"><div class="fill" style="width:'+n+'%;background:'+col+'"></div></div><div class="cap">'+esc(cap)+'</div></div></div>';
+    var miss=(d.missing||[]).map(function(m){return typeof m==='string'?{term:m,why:''}:m;}).filter(function(m){return m&&m.term;});
+    if(miss.length){
+      h+='<div class="ats-h">Missing keywords &amp; skills — click one to add it to Key skills</div><div class="ats-chips">'
+        +miss.map(function(m){return '<span class="ats-chip miss" data-term="'+escA(m.term)+'"'+(m.why?' title="'+escA(m.why)+'"':'')+'>'+esc(m.term)+' +</span>';}).join('')+'</div>';
+    }
+    var matched=(d.matched||[]).map(String).filter(Boolean);
+    if(matched.length)h+='<div class="ats-h">Already matched</div><div class="ats-chips">'+matched.map(function(t){return '<span class="ats-chip match">'+esc(t)+'</span>';}).join('')+'</div>';
+    var sug=(d.suggestions||[]).map(String).filter(Boolean);
+    if(sug.length)h+='<div class="ats-h">Suggestions</div><ul class="ats-sug">'+sug.map(function(s){return '<li>'+esc(s)+'</li>';}).join('')+'</ul>';
+    box.innerHTML=h;
+    box.querySelectorAll('.ats-chip.miss').forEach(function(c){c.onclick=function(){
+      var term=c.getAttribute('data-term');collectResume();
+      var cur=(R.skills||'').trim();
+      if(cur.split(/[\n,]/).map(function(s){return s.trim().toLowerCase();}).indexOf(term.toLowerCase())>=0){toast('“'+term+'” is already in Key skills.');return;}
+      R.skills=cur?cur+', '+term:term;saveResume();renderResumeEditor();renderResumePreview();
+      c.classList.remove('miss');c.classList.add('match');c.textContent=term;c.onclick=null;c.title='';
+      toast('Added “'+term+'” to Key skills.');
+    };});
+  }
+
+  function initResume(){
+    var ps=document.getElementById('resPath');
+    ps.innerHTML=Object.keys(TEMPLATES).map(function(k){return '<option value="'+k+'">'+esc(TEMPLATES[k].label)+' sample</option>';}).join('');
+    ps.value=R._path||'academic';
+    ps.addEventListener('change',function(){
+      var p=this.value;if(!TEMPLATES[p]){return;}
+      if(!confirm('Load the '+TEMPLATES[p].label+' sample? This replaces what’s in the builder now.')){this.value=R._path||'academic';return;}
+      R=clone(TEMPLATES[p].sample);R.pubLabel=TEMPLATES[p].pubLabel;R._path=p;saveResume();renderResumeEditor();renderResumePreview();
+    });
+    var ed=document.getElementById('resEditor');
+    ed.addEventListener('input',collectResume);
+    ed.addEventListener('click',function(ev){
+      var b=ev.target.closest('[data-act]');if(!b)return;collectResume();
+      var a=b.getAttribute('data-act');
+      if(a==='addEdu')R.education.push({degree:'',org:'',year:'',note:''});
+      else if(a==='delEdu')R.education.splice(+b.getAttribute('data-i'),1);
+      else if(a==='addExp')R.experience.push({role:'',org:'',period:'',bullets:''});
+      else if(a==='delExp')R.experience.splice(+b.getAttribute('data-i'),1);
+      else return;
+      renderResumeEditor();renderResumePreview();
+    });
+    document.getElementById('resPdf').onclick=function(){collectResume();window.print();};
+    document.getElementById('resDoc').onclick=exportDoc;
+    /* ATS check */
+    var atsM=document.getElementById('atsModal');
+    function atsReset(){
+      document.getElementById('atsResult').style.display='none';document.getElementById('atsResult').innerHTML='';
+      document.getElementById('atsInput').style.display='block';
+      document.getElementById('atsRun').style.display='';document.getElementById('atsAgain').style.display='none';
+      var hh=document.getElementById('atsHint');hh.classList.remove('err');hh.textContent='Uses Gemini. Your resume and this text are sent only to Google.';
+    }
+    document.getElementById('resAts').onclick=function(){collectResume();atsReset();document.getElementById('atsJd').value=R._atsJd||'';atsM.classList.add('on');document.getElementById('atsJd').focus();};
+    document.getElementById('atsCancel').onclick=function(){atsM.classList.remove('on');};
+    atsM.addEventListener('click',function(e){if(e.target===atsM)atsM.classList.remove('on');});
+    document.getElementById('atsAgain').onclick=function(){atsReset();document.getElementById('atsJd').focus();};
+    document.getElementById('atsRun').onclick=async function(){
+      var jd=document.getElementById('atsJd').value.trim(),hh=document.getElementById('atsHint');hh.classList.remove('err');
+      if(jd.length<40){hh.classList.add('err');hh.textContent='Paste a bit more of the job description (at least a couple of lines).';return;}
+      if(!getKey()){hh.classList.add('err');hh.textContent='Add your free Gemini key first — the “Gemini key” button, top right.';return;}
+      var btn=this,old=btn.textContent;btn.disabled=true;btn.textContent='Analysing…';
+      try{
+        var d=await atsAnalyse(jd);
+        R._atsJd=jd;saveResume();
+        document.getElementById('atsInput').style.display='none';
+        var box=document.getElementById('atsResult');box.style.display='block';renderAts(d);
+        btn.style.display='none';document.getElementById('atsAgain').style.display='';
+      }catch(e){
+        hh.classList.add('err');hh.textContent=(e&&e.nokey)?'Add your free Gemini key first — the “Gemini key” button, top right.':friendlyErr(e);
+      }finally{btn.disabled=false;btn.textContent=old;}
+    };
+    document.getElementById('resCopy').onclick=function(){collectResume();
+      if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(resumeText()).then(function(){toast('Resume text copied — paste into any application form.');},function(){toast('Couldn’t copy to clipboard.');});}
+      else{toast('Copy isn’t supported in this browser.');}
+    };
+    renderResumeEditor();renderResumePreview();
+  }
+
+  /* ========== KNOWLEDGE BASE ========== */
+  var KB=[
+    {subject:'Labour & Industrial Law',topics:[
+      {t:'Industrial Disputes Act, 1947',tag:'Act No. 14 of 1947',body:'<h3>Purpose</h3><p>Provides machinery for investigation and settlement of industrial disputes to secure industrial peace.</p><h3>Key concepts</h3><ul><li><b>Industrial dispute [S.2(k)]:</b> any dispute between employers and workmen connected with employment, non-employment, terms of employment or conditions of labour.</li><li><b>Workman [S.2(s)]:</b> person doing manual, skilled, technical, operational, clerical or supervisory work; excludes mainly managerial/administrative staff.</li><li><b>Settlement machinery:</b> Works Committee, Conciliation Officer, Board of Conciliation, Court of Inquiry, Labour Court, Industrial Tribunal, National Tribunal.</li></ul><h3>Retrenchment & closure</h3><ul><li><b>S.25F</b> — conditions precedent for valid retrenchment: one month’s notice/pay + retrenchment compensation (15 days’ avg pay per completed year).</li><li><b>S.25N</b> — prior government permission for retrenchment in large establishments (100+ workmen).</li><li><b>Layoff & compensation:</b> S.25C.</li></ul><h3>Strikes & lockouts</h3><p>Defined in S.2(q) and S.2(l); S.22–24 regulate legal/illegal strikes and lockouts (esp. in public utility services).</p><p class="csnote">Landmark: <i>Bangalore Water Supply v. A. Rajappa (1978)</i> gave the wide triple test for “industry”.</p>'},
+      {t:'Factories Act, 1948',tag:'Act No. 63 of 1948',body:'<h3>Object</h3><p>Regulates health, safety, welfare and working hours of workers in factories.</p><ul><li><b>Factory [S.2(m)]:</b> premises with 10+ workers (with power) or 20+ (without power) in a manufacturing process.</li><li><b>Working hours:</b> max 48 hours/week, 9 hours/day; overtime at twice the ordinary rate (S.59).</li><li><b>Weekly holiday</b> (S.52); rest interval after 5 hours (S.55).</li><li><b>Welfare:</b> canteens (250+), crèches (30+ women), first-aid, drinking water, washing facilities.</li><li><b>Annual leave with wages</b> (S.79).</li></ul>'},
+      {t:'Minimum Wages Act, 1948',tag:'Act No. 11 of 1948',body:'<h3>Object</h3><p>Prevents exploitation by fixing minimum rates of wages in scheduled employments.</p><ul><li>Appropriate government fixes/revises minimum wages (S.3) — reviewed at least every 5 years.</li><li>Components may include basic + special allowance (VDA).</li><li>Payment below the minimum is an offence; employer cannot contract out of it.</li></ul><p class="csnote">Now largely subsumed by the <b>Code on Wages, 2019</b>.</p>'},
+      {t:'Payment of Gratuity Act, 1972',tag:'Act No. 39 of 1972',body:'<h3>Eligibility</h3><p>Applies to establishments with 10+ employees. Gratuity is payable on termination after <b>5 years</b> of continuous service (5-year rule waived on death/disablement).</p><h3>Formula</h3><p><b>Gratuity = (Last drawn wages × 15 × completed years) / 26</b></p><ul><li>“Wages” = basic + DA.</li><li>Statutory ceiling currently ₹20 lakh.</li><li>Forfeiture possible for misconduct causing loss (S.4(6)).</li></ul>'},
+      {t:'EPF & ESI — social security',tag:'EPF 1952 · ESI 1948',body:'<h3>Employees’ Provident Funds Act, 1952</h3><ul><li>Applies to establishments with 20+ employees.</li><li>Contribution: 12% of wages by employee + 12% by employer (part goes to Pension Scheme, EPS).</li><li>Schemes: EPF, EPS (pension), EDLI (insurance).</li></ul><h3>Employees’ State Insurance Act, 1948</h3><ul><li>Provides medical, sickness, maternity, disablement and dependants’ benefits.</li><li>Contribution (current): employee 0.75%, employer 3.25% of wages.</li></ul>'},
+      {t:'Trade Unions Act, 1926',tag:'Act No. 16 of 1926',body:'<h3>Object</h3><p>Provides for registration of trade unions and confers immunities.</p><ul><li>Any 7 or more members may apply for registration (S.4); at least 10% or 100 workmen (whichever less) must be members.</li><li><b>Immunities:</b> from certain civil (S.18) and criminal (S.17) liability for acts in furtherance of a trade dispute.</li><li>Registered union is a body corporate.</li></ul>'},
+      {t:'The four Labour Codes (2019–2020)',tag:'Consolidation reform',body:'<h3>Consolidation of 29 laws into 4 Codes</h3><ul><li><b>Code on Wages, 2019</b> — wages, minimum wages, bonus, equal remuneration.</li><li><b>Industrial Relations Code, 2020</b> — trade unions, standing orders, disputes, retrenchment/closure.</li><li><b>Code on Social Security, 2020</b> — EPF, ESI, gratuity, maternity, gig/platform workers.</li><li><b>Occupational Safety, Health & Working Conditions Code, 2020</b> — factories, mines, contract & migrant labour.</li></ul><p class="csnote">Aim: simplify compliance and widen coverage; rules and full enforcement are being rolled out.</p>'},
+      {t:'Maternity Benefit & POSH',tag:'MB 1961 · POSH 2013',body:'<h3>Maternity Benefit Act, 1961</h3><ul><li>Paid maternity leave of <b>26 weeks</b> (for up to two children) after the 2017 amendment; 12 weeks for third child onwards.</li><li>Crèche facility for 50+ employees; work-from-home where feasible.</li></ul><h3>Sexual Harassment of Women at Workplace (POSH) Act, 2013</h3><ul><li>Based on <i>Vishaka v. State of Rajasthan (1997)</i> guidelines.</li><li>Mandatory <b>Internal Committee (IC)</b> for 10+ employees; Local Committee at district level.</li><li>Complaint within 3 months; inquiry within 90 days.</li></ul>'}
+    ]},
+    {subject:'Corporate Law',topics:[
+      {t:'Incorporation & types of companies',tag:'Companies Act, 2013',body:'<h3>Formation</h3><p>A company is incorporated by registration with the Registrar of Companies (ROC); on incorporation it becomes a separate legal person (<i>Salomon v. Salomon & Co. (1897)</i>).</p><h3>Types</h3><ul><li>By liability: limited by shares / by guarantee / unlimited.</li><li>By members: <b>private</b> (min 2, max 200), <b>public</b> (min 7), <b>One Person Company (OPC)</b>.</li><li>Others: government, foreign, holding & subsidiary, small company, Section 8 (non-profit).</li></ul>'},
+      {t:'Separate legal entity & lifting the veil',tag:'Doctrine',body:'<h3>Principle</h3><p>A company is distinct from its members (<i>Salomon</i>). Its debts are its own and members enjoy limited liability.</p><h3>Lifting / piercing the corporate veil</h3><p>Courts disregard separate personality to reach the persons behind it, e.g.:</p><ul><li>Fraud or improper conduct (<i>Gilford Motor Co. v. Horne</i>).</li><li>Enemy character in wartime (<i>Daimler Co. v. Continental Tyre</i>).</li><li>Sham/façade companies; evasion of tax or legal obligations.</li><li>Statutory lifting under the Act (e.g., misrepresentation in prospectus, fraudulent trading).</li></ul>'},
+      {t:'Doctrine of ultra vires',tag:'MoA — objects',body:'<p>Acts beyond the objects clause of the <b>Memorandum of Association</b> are <i>ultra vires</i> the company and <b>void</b> — they cannot be ratified even by unanimous consent (<i>Ashbury Railway Carriage v. Riche (1875)</i>).</p><ul><li>Protects shareholders and creditors.</li><li>An act ultra vires the <i>directors</i> (but intra vires the company) can be ratified by shareholders.</li></ul>'},
+      {t:'Memorandum & Articles of Association',tag:'MoA / AoA',body:'<h3>Memorandum (S.4)</h3><p>The charter defining the company’s constitution and scope. Clauses: Name, Registered Office, Objects, Liability, Capital, Subscription (and Nominee for OPC).</p><h3>Articles (S.5)</h3><p>Internal rules for management (regulations for members and directors). Subordinate to the MoA and the Act.</p><p class="csnote">Doctrine of <b>constructive notice</b> (public documents) is balanced by the doctrine of <b>indoor management</b> — <i>Royal British Bank v. Turquand</i> — outsiders may assume internal procedures were complied with.</p>'},
+      {t:'Prospectus & misstatements',tag:'S.26, S.34–35',body:'<p>A <b>prospectus</b> invites the public to subscribe for securities. It must contain the disclosures required by S.26.</p><h3>Liability for misstatement</h3><ul><li><b>Civil:</b> compensation to subscribers (S.35) and rescission for misrepresentation.</li><li><b>Criminal:</b> for untrue statements (S.34) and fraud (S.447).</li><li>Directors/experts may escape by proving reasonable belief in truth.</li></ul>'},
+      {t:'Directors — appointment & duties',tag:'S.149, S.166',body:'<h3>Board</h3><ul><li>Min directors: private 2, public 3, OPC 1; max 15 (more by special resolution).</li><li>Every company must have at least one director resident in India; certain companies need a <b>woman director</b> and <b>independent directors</b>.</li></ul><h3>Duties (S.166)</h3><ul><li>Act in good faith to promote the objects, for the benefit of members as a whole.</li><li>Exercise due and reasonable care, skill and diligence.</li><li>Avoid conflicts of interest and undue gain.</li></ul>'},
+      {t:'Corporate Social Responsibility (S.135)',tag:'CSR',body:'<p>Companies meeting thresholds — net worth ≥ ₹500 cr, or turnover ≥ ₹1000 cr, or net profit ≥ ₹5 cr — must spend at least <b>2% of average net profits</b> of the last three years on CSR.</p><ul><li>CSR Committee of the Board formulates policy.</li><li>Permissible activities listed in <b>Schedule VII</b>.</li><li>Unspent amounts must be transferred to specified funds/accounts.</li></ul>'},
+      {t:'Oppression, mismanagement & winding up',tag:'S.241–242 · IBC 2016',body:'<h3>Oppression & mismanagement (S.241–242)</h3><p>Members may apply to the <b>NCLT</b> for relief where affairs are conducted in a manner oppressive or prejudicial to members or the company’s interest.</p><h3>Winding up / insolvency</h3><ul><li>Winding up by the Tribunal under the Act.</li><li><b>Insolvency & Bankruptcy Code, 2016</b> — time-bound Corporate Insolvency Resolution Process (CIRP) before the NCLT; resolution professional, committee of creditors, and liquidation as last resort.</li></ul>'}
+    ]},
+    {subject:'Constitutional Law',topics:[
+      {t:'Fundamental Rights (Part III)',tag:'Arts. 12–35',body:'<ul><li><b>Right to Equality</b> (14–18)</li><li><b>Right to Freedom</b> (19–22)</li><li><b>Right against Exploitation</b> (23–24)</li><li><b>Right to Freedom of Religion</b> (25–28)</li><li><b>Cultural & Educational Rights</b> (29–30)</li><li><b>Right to Constitutional Remedies</b> (32)</li></ul><p>Enforceable against the “State” (Art.12); laws inconsistent with them are void (Art.13).</p>'},
+      {t:'Article 21 — Life & personal liberty',tag:'Due process',body:'<p>“No person shall be deprived of his life or personal liberty except according to procedure established by law.”</p><ul><li><i>Maneka Gandhi v. Union of India (1978)</i>: procedure must be just, fair and reasonable — read in “due process”.</li><li>Expanded to include right to privacy (<i>Puttaswamy, 2017</i>), livelihood, clean environment, speedy trial, dignity, shelter, health.</li></ul>'},
+      {t:'Basic structure doctrine',tag:'Art. 368',body:'<p>Parliament can amend the Constitution but cannot destroy its <b>basic structure</b> — <i>Kesavananda Bharati v. State of Kerala (1973)</i>.</p><ul><li>Features held basic: supremacy of the Constitution, rule of law, judicial review, separation of powers, federalism, secularism, free & fair elections.</li><li>Applied in <i>Indira Gandhi v. Raj Narain</i>, <i>Minerva Mills</i>, <i>S.R. Bommai</i>.</li></ul>'},
+      {t:'Writs (Arts. 32 & 226)',tag:'Remedies',body:'<ul><li><b>Habeas corpus</b> — produce a detained person; tests legality of detention.</li><li><b>Mandamus</b> — command a public authority to do its duty.</li><li><b>Prohibition</b> — stop a lower court/tribunal exceeding jurisdiction (before).</li><li><b>Certiorari</b> — quash an order made without/excess of jurisdiction (after).</li><li><b>Quo warranto</b> — challenge a person’s claim to a public office.</li></ul><p class="csnote">Art.32 (Supreme Court) is itself a fundamental right; Art.226 (High Courts) is wider — also for “any other purpose”.</p>'},
+      {t:'Directive Principles (Part IV)',tag:'Arts. 36–51',body:'<p>Non-justiciable guidelines fundamental to governance. Categories:</p><ul><li><b>Socialistic</b> (e.g., 38, 39, 41, 43).</li><li><b>Gandhian</b> (e.g., 40 village panchayats, 43 cottage industries, 46, 47, 48).</li><li><b>Liberal-intellectual</b> (e.g., 44 uniform civil code, 45, 48, 49, 50, 51).</li></ul><p>Complement fundamental rights; the State strives to apply them in making laws.</p>'}
+    ]},
+    {subject:'Law of Contract',topics:[
+      {t:'Essentials of a valid contract',tag:'S.10',body:'<p>“All agreements are contracts if made by free consent of parties competent to contract, for a lawful consideration and with a lawful object, and are not expressly declared void.”</p><ul><li>Offer & acceptance → agreement.</li><li>Intention to create legal relations.</li><li>Lawful consideration & object.</li><li>Capacity (S.11) & free consent (S.13–22).</li><li>Not declared void; certainty; possibility of performance.</li></ul>'},
+      {t:'Offer & acceptance',tag:'S.2–9',body:'<ul><li>Offer must be communicated; may be express or implied.</li><li>Acceptance must be <b>absolute and unqualified</b> (S.7) — mirror-image rule; a counter-offer rejects the original.</li><li>Communication complete: for the proposer when the acceptance is posted; for the acceptor when it reaches the proposer (S.4).</li><li><i>Carlill v. Carbolic Smoke Ball Co.</i> — general offers and acceptance by conduct.</li></ul>'},
+      {t:'Consideration',tag:'S.2(d), S.25',body:'<p>“Something in return” — an act, abstinence or promise done at the promisor’s desire. It may be past, present or future.</p><ul><li>Must move at the desire of the promisor; need not be adequate but must be real.</li><li>General rule: <b>no consideration, no contract</b>; exceptions in S.25 (natural love & affection in writing/registered, past voluntary service, time-barred debt).</li></ul>'},
+      {t:'Free consent',tag:'S.13–22',body:'<p>Consent is free when not caused by:</p><ul><li><b>Coercion</b> (S.15), <b>undue influence</b> (S.16) — contract voidable at the aggrieved party’s option.</li><li><b>Fraud</b> (S.17), <b>misrepresentation</b> (S.18) — voidable; fraud may also give damages.</li><li><b>Mistake</b> (S.20–22) — bilateral mistake of fact makes the agreement void; mistake of law generally no excuse.</li></ul>'},
+      {t:'Doctrine of frustration',tag:'S.56',body:'<p>A contract to do an act which, after being made, becomes impossible or unlawful is <b>void</b> when the act becomes impossible/unlawful (subsequent impossibility).</p><ul><li>Grounds: destruction of subject-matter, death/incapacity in personal contracts, change of law, non-occurrence of the basis of the contract.</li><li>Leading case: <i>Satyabrata Ghose v. Mugneeram Bangur (1954)</i>; English root <i>Taylor v. Caldwell</i>.</li></ul>'},
+      {t:'Breach & remedies',tag:'S.73–75',body:'<ul><li><b>Damages</b> (S.73) — compensation for loss naturally arising or known to parties (<i>Hadley v. Baxendale</i>).</li><li><b>Liquidated damages / penalty</b> (S.74) — reasonable compensation up to the stipulated amount.</li><li><b>Specific performance & injunction</b> — under the Specific Relief Act, 1963.</li><li><b>Rescission & quantum meruit.</b></li></ul>'}
+    ]}
+  ];
+  var kbState={subject:'all',q:'',sel:null};
+  KB.forEach(function(s,si){s.topics.forEach(function(t,ti){t.id='kb'+si+'_'+ti;t.subject=s.subject;});});
+  var kbSaved=JSON.parse(LS.getItem('lex_kb_saved')||'[]');
+  function kbAllTopics(){var a=[];KB.forEach(function(s){a=a.concat(s.topics);});return a;}
+  function kbFind(id){return kbAllTopics().filter(function(t){return t.id===id;})[0];}
+  function renderKbSubjects(){
+    var box=$('#kbSubjects');box.innerHTML='';
+    var subs=['all'].concat(KB.map(function(s){return s.subject;}));
+    subs.forEach(function(s){var c=document.createElement('span');c.className='kbsub'+(kbState.subject===s?' on':'');c.textContent=s==='all'?'All subjects':s;
+      c.onclick=function(){kbState.subject=s;renderKbSubjects();renderKbItems();};box.appendChild(c);});
+  }
+  function renderKbItems(){
+    var box=$('#kbItems');box.innerHTML='';
+    var q=kbState.q.toLowerCase();
+    var list=kbAllTopics().filter(function(t){
+      if(kbState.subject!=='all'&&t.subject!==kbState.subject)return false;
+      if(!q)return true;
+      return (t.t+' '+t.tag+' '+plain(t.body)).toLowerCase().indexOf(q)>=0;
+    });
+    if(!list.length){box.innerHTML='<div class="empty">No topic matched.<br>Try the Ask-Gemini lookup from any open topic, or search a broader term.</div>';return;}
+    list.forEach(function(t){
+      var el=document.createElement('div');el.className='kbitem'+(kbState.sel===t.id?' on':'');
+      el.innerHTML='<div class="kt"></div><div class="ks"></div>';
+      el.querySelector('.kt').textContent=t.t;el.querySelector('.ks').textContent=t.subject+' · '+t.tag;
+      el.onclick=function(){kbState.sel=t.id;renderKbItems();openKbTopic(t);};
+      box.appendChild(el);
+    });
+  }
+  function openKbTopic(t){
+    var r=$('#kbRead');
+    r.innerHTML='<div class="kbart"><div class="kbeye">'+esc(t.subject)+'</div><h1>'+esc(t.t)+'</h1>'
+      +'<div><span class="kbtag">'+esc(t.tag)+'</span></div>'
+      +'<div class="kbacts"><button class="btn" id="kbSaveNote"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><path d="M5 3h10l4 4v14H5z" stroke-linejoin="round"/></svg>Save as note</button>'
+      +'<button class="btn" id="kbBookmark">'+(kbSaved.indexOf(t.id)>=0?'★ Saved':'☆ Bookmark')+'</button>'
+      +'<button class="btn pri" id="kbExplain"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><path d="M13 4l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" stroke-linejoin="round"/></svg>Explain more with Gemini</button></div>'
+      +'<div class="kbcontent">'+t.body+'</div></div>';
+    r.scrollTop=0;
+    $('#kbSaveNote').onclick=function(){
+      var n={id:Date.now(),title:t.t,body:'<h2>'+esc(t.t)+'</h2><p><em>'+esc(t.subject+' · '+t.tag)+'</em></p>'+t.body,html:true,ts:Date.now()};
+      notes.unshift(n);curId=n.id;save();renderAll();toast('Saved to Notes.');
+    };
+    $('#kbBookmark').onclick=function(){
+      var i=kbSaved.indexOf(t.id);
+      if(i>=0){kbSaved.splice(i,1);this.textContent='☆ Bookmark';toast('Removed bookmark.');}
+      else{kbSaved.push(t.id);this.textContent='★ Saved';toast('Bookmarked.');}
+      LS.setItem('lex_kb_saved',JSON.stringify(kbSaved));
+    };
+    $('#kbExplain').onclick=function(){
+      document.querySelector('#nav button[data-v="notes"]').click();
+      $('#ask').value='Explain in more depth for teaching a class: '+t.t+' ('+t.subject+', Indian law) — key provisions, leading cases, and common exam questions.';
+      autoSize();ask($('#ask').value);
+    };
+  }
+  $('#kbSearch').addEventListener('input',function(){kbState.q=this.value;renderKbItems();});
+  renderKbSubjects();renderKbItems();
+
+  /* ========== QUESTION BANK ========== */
+  var bankData=null,bankShowKey=true;
+  var bankSaved=JSON.parse(LS.getItem('lex_bank')||'[]');
+  async function bankGenerate(cfg){
+    var key=getKey();if(!key)throw {nokey:true};
+    var prompt='You are an experienced Indian law professor setting an examination paper for your students.\n'
+      +'Subject/course: '+cfg.subject+'\nTopics/syllabus: '+cfg.topics+'\nDifficulty: '+cfg.diff+'\n'
+      +'Composition: '+cfg.mcq+' MCQs (1 mark each, exactly 4 options), '+cfg.short+' short-answer, '+cfg.long+' long-answer, '+cfg.caseq+' case/problem questions.\n'
+      +'Return ONLY valid JSON, no markdown fences: {"title":"'+cfg.title+'","subject":"'+cfg.subject+'","marks":"'+cfg.marks+'","duration":"'+cfg.duration+'","instructions":["...","..."],"sections":[{"heading":"Section A — Multiple Choice Questions","questions":[{"q":"...","marks":1,"options":["...","...","...","..."],"answer":"correct option text","model":""}]}]}. '
+      +'Group questions into sections by type. For MCQs include the 4 options and set "answer" to the correct option; for non-MCQ omit "options" and give a concise model answer in "model". '
+      +(cfg.key?'Always fill "answer"/"model".':'Leave "answer" and "model" as empty strings.')
+      +' Ground every question in Indian law with correct Acts, sections and real decided cases. Never fabricate citations.';
+    var data=await geminiFetch({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{temperature:0.6,responseMimeType:'application/json'}});
+    var txt=((data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[]).map(function(p){return p.text||''}).join('');
+    return atsParse(txt);
+  }
+  function bankPaperHtml(withKey){
+    var d=bankData;if(!d)return '';
+    var h='<div class="qp"><h1>'+esc(d.title||'Question Paper')+'</h1>';
+    var meta=[d.subject,d.marks?('Maximum Marks: '+d.marks):'',d.duration?('Time: '+d.duration):''].filter(Boolean).map(esc).join(' &nbsp;|&nbsp; ');
+    if(meta)h+='<div class="qpmeta">'+meta+'</div>';
+    if(d.instructions&&d.instructions.length)h+='<div class="qpq"><b>Instructions:</b></div><ul class="qpopts">'+d.instructions.map(function(i){return '<li>'+esc(i)+'</li>';}).join('')+'</ul>';
+    (d.sections||[]).forEach(function(sec){
+      h+='<h2>'+esc(sec.heading||'Section')+'</h2>';
+      (sec.questions||[]).forEach(function(q,i){
+        h+='<div class="qpq"><b>Q'+(i+1)+'.</b> '+esc(q.q||'')+(q.marks?' <span style="float:right">['+esc(String(q.marks))+']</span>':'')+'</div>';
+        if(q.options&&q.options.length)h+='<ol class="qpopts" type="a">'+q.options.map(function(o){return '<li>'+esc(String(o))+'</li>';}).join('')+'</ol>';
+        if(withKey&&(q.answer||q.model))h+='<div class="qpkey"><b>Answer:</b> '+esc(q.answer||q.model)+'</div>';
+      });
+    });
+    return h+'</div>';
+  }
+  function renderBankPaper(){$('#bankPaper').innerHTML=bankPaperHtml(bankShowKey);}
+  function bankText(){
+    var d=bankData;if(!d)return '';var L=[];
+    L.push((d.title||'Question Paper'));if(d.subject)L.push(d.subject);
+    L.push([d.marks?('Maximum Marks: '+d.marks):'',d.duration?('Time: '+d.duration):''].filter(Boolean).join('   '));
+    if(d.instructions&&d.instructions.length){L.push('','Instructions:');d.instructions.forEach(function(i){L.push('  - '+i);});}
+    (d.sections||[]).forEach(function(sec){L.push('','== '+(sec.heading||'')+' ==');
+      (sec.questions||[]).forEach(function(q,i){L.push('Q'+(i+1)+'. '+(q.q||'')+(q.marks?'  ['+q.marks+']':''));
+        (q.options||[]).forEach(function(o,j){L.push('   ('+String.fromCharCode(97+j)+') '+o);});
+        if(bankShowKey&&(q.answer||q.model))L.push('   Answer: '+(q.answer||q.model));});
+    });
+    return L.join('\n');
+  }
+  function renderBankSaved(){
+    var box=$('#bankSaved');if(!bankSaved.length){box.innerHTML='';return;}
+    box.innerHTML='<div class="gh"><span>Saved papers</span></div>'+bankSaved.map(function(p){
+      return '<div class="bank-saveitem" data-id="'+p.id+'"><span>'+esc(p.data.title||'Paper')+'</span><span class="m">'+new Date(p.ts).toLocaleDateString(undefined,{day:'numeric',month:'short'})+'</span><button class="x" data-del="'+p.id+'" title="Delete">&times;</button></div>';
+    }).join('');
+    box.querySelectorAll('.bank-saveitem').forEach(function(el){el.onclick=function(ev){
+      if(ev.target.getAttribute('data-del')){var id=+ev.target.getAttribute('data-del');bankSaved=bankSaved.filter(function(x){return x.id!==id;});LS.setItem('lex_bank',JSON.stringify(bankSaved));renderBankSaved();return;}
+      var id=+el.getAttribute('data-id');var p=bankSaved.filter(function(x){return x.id===id;})[0];if(p){bankData=p.data;bankShowKey=true;renderBankPaper();showBankActions();}
+    };});
+  }
+  function showBankActions(){['bankCopy','bankDoc','bankKey'].forEach(function(id){$('#'+id).style.display='';});}
+  $('#bankGen').onclick=async function(){
+    var cfg={subject:$('#bkSubject').value.trim()||'Law',topics:$('#bkTopics').value.trim(),title:$('#bkTitle').value.trim()||'Examination',
+      marks:$('#bkMarks').value.trim(),duration:$('#bkDuration').value.trim(),diff:$('#bkDiff').value,
+      mcq:+$('#bkMcq').value||0,short:+$('#bkShort').value||0,long:+$('#bkLong').value||0,caseq:+$('#bkCase').value||0,key:$('#bkAnsKey').checked};
+    var h=$('#bankHint');h.classList.remove('err');
+    if(!cfg.topics){h.classList.add('err');h.textContent='Describe the topics / syllabus to cover.';return;}
+    if(cfg.mcq+cfg.short+cfg.long+cfg.caseq===0){h.classList.add('err');h.textContent='Ask for at least one question.';return;}
+    if(!getKey()){h.classList.add('err');h.textContent='Add your free Gemini key first — the “Gemini key” button, top right.';return;}
+    var btn=this;btn.disabled=true;btn.textContent='Generating…';h.textContent='Gemini is setting your paper…';
+    try{
+      bankData=await bankGenerate(cfg);bankShowKey=cfg.key;
+      renderBankPaper();showBankActions();
+      var rec={id:Date.now(),ts:Date.now(),data:bankData};bankSaved.unshift(rec);bankSaved=bankSaved.slice(0,20);LS.setItem('lex_bank',JSON.stringify(bankSaved));renderBankSaved();
+      h.textContent='Done. Edit on paper, copy, or download as Word.';
+    }catch(err){h.classList.add('err');h.textContent=err&&err.nokey?'Add your free Gemini key first.':friendlyErr(err);}
+    finally{btn.disabled=false;btn.textContent='Generate question paper';}
+  };
+  $('#bankKey').onclick=function(){bankShowKey=!bankShowKey;renderBankPaper();};
+  $('#bankCopy').onclick=function(){var t=bankText();if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(t).then(function(){toast('Paper copied.');});}else toast('Copy not supported.');};
+  $('#bankDoc').onclick=function(){
+    var doc='<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word"><head><meta charset="utf-8"><style>@page{margin:18mm}body{font-family:Georgia,serif;color:#111;font-size:12px;line-height:1.5}h1{font-size:18px;text-align:center}h2{font-size:13px;text-transform:uppercase;border-bottom:1px solid #999}.qpmeta{text-align:center;font-size:11px}ol{padding-left:22px}.qpkey{color:#7a3a2a;font-size:11px}</style></head><body>'+bankPaperHtml(bankShowKey)+'</body></html>';
+    var blob=new Blob(['﻿'+doc],{type:'application/msword'});var a=document.createElement('a');a.href=URL.createObjectURL(blob);
+    a.download=((bankData&&bankData.title)||'Question_Paper').replace(/[^\w]+/g,'_')+'.doc';document.body.appendChild(a);a.click();
+    setTimeout(function(){a.remove();URL.revokeObjectURL(a.href);},1000);toast('Downloaded Word document.');
+  };
+  renderBankSaved();
+
+  /* ========== UGC-NET CHEAT SHEETS ========== */
+  var CHEAT=[
+    {name:'Quant & Aptitude',html:'<h4>Percentages</h4><ul><li><code>x% of y = (x/100)×y</code></li><li>% change = <code>(New−Old)/Old × 100</code></li><li>If A is r% more than B, B is less than A by <code>r/(100+r)×100 %</code></li></ul><h4>Profit & Loss</h4><ul><li><code>Profit% = Profit/CP × 100</code>; <code>SP = CP(1 + P/100)</code></li><li>Discount is on marked price: <code>SP = MP(1 − D/100)</code></li></ul><h4>Ratio, Average, Interest</h4><ul><li>Average = <code>sum of items / number of items</code></li><li>Simple Interest = <code>P×R×T/100</code></li><li>Compound Interest: <code>A = P(1 + R/100)^T</code>, CI = A − P</li></ul><h4>Speed & Work</h4><ul><li>Speed = <code>Distance/Time</code>; km/h → m/s: <code>×5/18</code></li><li>If A finishes in a days, one day’s work = <code>1/a</code>; together = <code>1/a + 1/b</code></li></ul><h4>Counting</h4><ul><li>Permutation <code>nPr = n!/(n−r)!</code>; Combination <code>nCr = n!/(r!(n−r)!)</code></li></ul><div class="csnote"><b>Example:</b> A book costs ₹200, sold at ₹250. Profit% = 50/200×100 = <b>25%</b>.</div>'},
+    {name:'Logical Reasoning',html:'<h4>Common question types</h4><ul><li><b>Number/letter series</b> — find the pattern (differences, ×, squares, alternate).</li><li><b>Coding–decoding</b> — map letters by position shift (A=1…Z=26).</li><li><b>Blood relations</b> — draw a family tree; track generations & gender.</li><li><b>Direction sense</b> — sketch N-E-S-W; right turn = clockwise.</li><li><b>Syllogism</b> — use Venn diagrams; “All/Some/No”.</li><li><b>Analogy & classification (odd one out).</b></li></ul><div class="csnote"><b>Series example:</b> 2, 6, 12, 20, 30, ? — differences 4,6,8,10 → next diff 12 → <b>42</b>.</div><h4>Indian logic (Paper 1)</h4><ul><li><b>Anumana</b> (inference), <b>pramanas</b> (means of knowledge), structure of <b>Nyaya</b> syllogism (5 members).</li></ul>'},
+    {name:'Teaching Aptitude',html:'<h4>Teaching</h4><ul><li>Levels: <b>memory → understanding → reflective</b>.</li><li>Maxims: known→unknown, simple→complex, concrete→abstract, particular→general.</li><li>Methods: lecture, discussion, demonstration, project, problem-solving, flipped, blended, e-learning.</li></ul><h4>Bloom’s Taxonomy (revised)</h4><ul><li>Cognitive: <b>Remember → Understand → Apply → Analyse → Evaluate → Create</b>.</li><li>Domains: cognitive, affective, psychomotor.</li></ul><h4>Evaluation</h4><ul><li><b>Formative</b> (during, to improve) vs <b>Summative</b> (end, to grade).</li><li>Norm-referenced vs criterion-referenced; CCE; validity & reliability of a test.</li></ul>'},
+    {name:'Research Aptitude',html:'<h4>Types of research</h4><ul><li>Basic vs Applied; Descriptive vs Analytical; Qualitative vs Quantitative; Empirical vs Conceptual; Doctrinal (esp. in law) vs Non-doctrinal.</li></ul><h4>Steps</h4><ol class="qpopts" style="padding-left:20px"><li>Identify problem → 2. Review literature → 3. Formulate hypothesis → 4. Research design → 5. Data collection → 6. Analysis → 7. Conclusion & report.</li></ol><h4>Key ideas</h4><ul><li><b>Hypothesis:</b> tentative, testable statement (null vs alternative).</li><li><b>Sampling:</b> probability (random, stratified, systematic, cluster) vs non-probability (convenience, quota, purposive, snowball).</li><li><b>Data:</b> primary vs secondary; tools: questionnaire, interview, observation, schedule.</li><li><b>Citation styles:</b> in law, Bluebook / OSCOLA / ILI.</li><li><b>Ethics:</b> avoid plagiarism, ensure consent & confidentiality.</li></ul>'},
+    {name:'Comm · ICT · Higher-Ed',html:'<h4>Communication</h4><ul><li>Types: verbal/non-verbal, formal/informal, upward/downward/horizontal.</li><li>Barriers: physical, semantic, psychological; effective communication is <b>two-way</b> with feedback.</li></ul><h4>ICT</h4><ul><li>1 byte = 8 bits; KB→MB→GB→TB.</li><li>Memory: RAM (volatile) vs ROM; hardware vs software.</li><li>Networks: LAN/WAN/MAN; www vs internet; e-governance & digital initiatives.</li></ul><h4>Higher education in India</h4><ul><li>Bodies: <b>UGC, AICTE, NAAC, NIRF, NCTE, BCI</b> (legal education), NEP 2020.</li><li>People & environment, higher-education governance are Paper 1 units.</li></ul>'}
+  ];
+  var csIdx=0,csOpen=false;
+  function renderCheat(){
+    $('#csTabs').innerHTML=CHEAT.map(function(c,i){return '<span class="cs-tab'+(i===csIdx?' on':'')+'" data-i="'+i+'">'+esc(c.name)+'</span>';}).join('');
+    $('#csBody').innerHTML=CHEAT[csIdx].html;
+    $('#csTabs').querySelectorAll('.cs-tab').forEach(function(t){t.onclick=function(){csIdx=+t.getAttribute('data-i');renderCheat();};});
+  }
+  $('#exCheatToggle').onclick=function(){csOpen=!csOpen;$('#exCheat').style.display=csOpen?'block':'none';$('#exCheatChev').textContent=csOpen?'Hide':'Show';if(csOpen)renderCheat();};
+
+  /* ========== MY SPACE ========== */
+  var spCfg=JSON.parse(LS.getItem('lex_space_cfg')||'{}');
+  if(spCfg.rate==null)spCfg.rate=500;if(spCfg.examRate==null)spCfg.examRate=800;
+  var space=JSON.parse(LS.getItem('lex_space')||'{}');
+  var spNow=new Date(),spY=spNow.getFullYear(),spM=spNow.getMonth(),spSel=null;
+  var MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
+  function spSave(){LS.setItem('lex_space',JSON.stringify(space));}
+  function spCfgSave(){LS.setItem('lex_space_cfg',JSON.stringify(spCfg));}
+  function spKey(y,m,d){return y+'-'+(m+1)+'-'+d;}
+  function spIncome(e){return (parseFloat(e.count)||0)*(parseFloat(e.rate)||0);}
+  function spStat(n,l,money){return '<div class="spstat'+(money?' money':'')+'"><div class="n">'+esc(String(n))+'</div><div class="l">'+esc(l)+'</div></div>';}
+  function renderSpace(){
+    var owner=(prof.name||'Anwesha').trim().split(/\s+/)[0];$('#spOwner').textContent=owner;
+    $('#spMonth').textContent=MONTHS[spM]+' '+spY;
+    var classes=0,exams=0,others=0,income=0;
+    Object.keys(space).forEach(function(k){var p=k.split('-');if(+p[0]!==spY||(+p[1]-1)!==spM)return;
+      space[k].forEach(function(e){var c=parseFloat(e.count)||0;if(e.type==='class')classes+=c;else if(e.type==='exam')exams+=c;else others+=c;income+=spIncome(e);});});
+    $('#spStats').innerHTML=spStat(classes,'Classes taught')+spStat(exams,'Exam duties')+spStat(others,'Other sessions')+spStat('₹'+income.toLocaleString('en-IN'),'Est. income this month',true);
+    var first=new Date(spY,spM,1).getDay(),days=new Date(spY,spM+1,0).getDate();
+    var todayK=spKey(spNow.getFullYear(),spNow.getMonth(),spNow.getDate());
+    var cal=$('#spCal');cal.innerHTML='';
+    for(var i=0;i<first;i++){var e0=document.createElement('div');e0.className='spcell empty';cal.appendChild(e0);}
+    for(var d=1;d<=days;d++){(function(d){
+      var k=spKey(spY,spM,d),es=space[k]||[];
+      var cell=document.createElement('div');cell.className='spcell'+(k===todayK?' today':'')+(k===spSel?' sel':'');
+      var dots='',seen={};es.forEach(function(e){if(!seen[e.type]){seen[e.type]=1;dots+='<i class="spd spd-'+e.type+'"></i>';}});
+      var inc=es.reduce(function(a,e){return a+spIncome(e);},0);
+      cell.innerHTML='<span class="dn">'+d+'</span><span class="dots">'+dots+'</span>'+(inc?'<span class="dinc">₹'+inc.toLocaleString('en-IN')+'</span>':'');
+      cell.onclick=function(){spSel=k;renderSpace();};
+      cal.appendChild(cell);
+    })(d);}
+    renderSpDay();
+  }
+  function renderSpDay(){
+    var box=$('#spDayBody'),ttl=$('#spDayTitle');
+    if(!spSel){ttl.textContent='Select a day';box.innerHTML='<div class="exempty">Tap any date in the calendar to log classes, exam duty or other work.</div>';return;}
+    var p=spSel.split('-');ttl.textContent=new Date(+p[0],+p[1]-1,+p[2]).toLocaleDateString(undefined,{weekday:'long',day:'numeric',month:'long'});
+    var es=space[spSel]||[],h='';
+    es.forEach(function(e,i){
+      h+='<div class="spentry"><button class="sedel" data-i="'+i+'" title="Remove">&times;</button>'
+        +'<div class="se1"><span class="setype">'+({class:'Class',exam:'Exam duty',other:'Other'}[e.type]||'Other')+'</span><span class="seinc">₹'+spIncome(e).toLocaleString('en-IN')+'</span></div>'
+        +'<div class="sesub">'+esc(e.subject||'—')+' · '+(parseFloat(e.count)||0)+' × ₹'+(parseFloat(e.rate)||0)+(e.note?' · '+esc(e.note):'')+'</div></div>';
+    });
+    h+='<div class="spadd">'
+      +'<div><label>Type</label><select class="resin" id="spType"><option value="class">Class</option><option value="exam">Exam duty</option><option value="other">Other</option></select></div>'
+      +'<div><label>Subject / description</label><input class="resin" id="spSubject" placeholder="e.g. Company Law — Sem V"></div>'
+      +'<div class="res2"><div><label>Count</label><input class="resin" type="number" min="0" step="1" id="spCount" value="1"></div>'
+      +'<div><label>Pay each (₹)</label><input class="resin" type="number" min="0" id="spEntryRate" value="'+spCfg.rate+'"></div></div>'
+      +'<div><label>Note (optional)</label><input class="resin" id="spNote"></div>'
+      +'<button class="btn pri" id="spAdd" style="justify-content:center">Add entry</button></div>';
+    box.innerHTML=h;
+    box.querySelectorAll('.sedel').forEach(function(b){b.onclick=function(){var i=+b.getAttribute('data-i');space[spSel].splice(i,1);if(!space[spSel].length)delete space[spSel];spSave();renderSpace();};});
+    $('#spType').onchange=function(){$('#spEntryRate').value=this.value==='exam'?spCfg.examRate:this.value==='class'?spCfg.rate:0;};
+    $('#spAdd').onclick=function(){
+      var e={type:$('#spType').value,subject:$('#spSubject').value.trim(),count:$('#spCount').value||'0',rate:$('#spEntryRate').value||'0',note:$('#spNote').value.trim()};
+      space[spSel]=space[spSel]||[];space[spSel].push(e);spSave();renderSpace();toast('Entry added.');
+    };
+  }
+  $('#spPrev').onclick=function(){spM--;if(spM<0){spM=11;spY--;}renderSpace();};
+  $('#spNext').onclick=function(){spM++;if(spM>11){spM=0;spY++;}renderSpace();};
+  $('#spToday').onclick=function(){spY=spNow.getFullYear();spM=spNow.getMonth();spSel=spKey(spY,spM,spNow.getDate());renderSpace();};
+  $('#spRate').value=spCfg.rate;$('#spExamRate').value=spCfg.examRate;
+  $('#spRate').oninput=function(){spCfg.rate=parseFloat(this.value)||0;spCfgSave();};
+  $('#spExamRate').oninput=function(){spCfg.examRate=parseFloat(this.value)||0;spCfgSave();};
+  renderSpace();
+
+  /* ========== RESUME: upload & AI autofill ========== */
+  async function resumeAiFill(text){
+    var key=getKey();if(!key)throw {nokey:true};
+    var prompt='Extract the resume below into JSON with EXACTLY these keys: name,title,email,phone,location,links,summary,education,experience,publications,skills,certs,extra. '
+      +'"education" is an array of {degree,org,year,note}; "experience" is an array of {role,org,period,bullets}; for "bullets" and other multi-item fields join items with \\n. Use "" for anything missing. Do NOT invent facts — only use what is in the text. Return ONLY valid JSON, no markdown.\n\nRESUME:\n"""\n'+text.slice(0,12000)+'\n"""';
+    var data=await geminiFetch({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{temperature:0.2,responseMimeType:'application/json'}});
+    var txt=((data.candidates&&data.candidates[0]&&data.candidates[0].content&&data.candidates[0].content.parts)||[]).map(function(p){return p.text||''}).join('');
+    return atsParse(txt);
+  }
+  $('#resImport').onclick=function(){$('#resFile').click();};
+  $('#resFile').addEventListener('change',async function(e){
+    var f=e.target.files&&e.target.files[0];if(!f)return;e.target.value='';
+    var ext=(f.name.split('.').pop()||'').toLowerCase();
+    toast('Reading '+f.name+'…',true);
+    try{
+      var text;
+      if(ext==='pdf')text=await extractPdf(await readBuf(f));
+      else if(ext==='docx'||ext==='doc')text=await extractDocx(await readBuf(f));
+      else text=await readTxt(f);
+      if(!text||text.length<20){hideToast();toast('No readable text found — the file may be a scanned image.');return;}
+      if(!getKey()){R.summary=(R.summary?R.summary+'\n\n':'')+text;saveResume();renderResumeEditor();renderResumePreview();hideToast();toast('Added the text to Summary. Add a Gemini key to auto-structure it into fields.');return;}
+      toast('AI is reading your resume…',true);
+      var p=await resumeAiFill(text);
+      ['name','title','email','phone','location','links','summary','publications','skills','certs','extra'].forEach(function(k){if(p[k]!=null&&String(p[k]).trim())R[k]=String(Array.isArray(p[k])?p[k].join('\n'):p[k]);});
+      if(Array.isArray(p.education)&&p.education.length)R.education=p.education.map(function(x){return {degree:x.degree||'',org:x.org||'',year:x.year||'',note:x.note||''};});
+      if(Array.isArray(p.experience)&&p.experience.length)R.experience=p.experience.map(function(x){return {role:x.role||'',org:x.org||'',period:x.period||'',bullets:Array.isArray(x.bullets)?x.bullets.join('\n'):(x.bullets||'')};});
+      saveResume();renderResumeEditor();renderResumePreview();hideToast();toast('Filled from “'+f.name+'” — review and tweak anything.');
+    }catch(err){hideToast();toast(err&&err.nokey?'Add your free Gemini key first.':friendlyErr(err));}
+  });
+
+  /* init */
+  refreshKeydot();renderAll();renderExHome();initResume();
+})();
+</script>
+</body>
+</html>
