@@ -69,9 +69,27 @@
   .view.on{display:flex}
 
   /* ---- NOTES: 3 panes ---- */
-  .notes{display:grid;grid-template-columns:230px 1fr 340px;flex:1;min-height:0}
+  .notes{display:flex;flex:1;min-height:0}
   .pane{min-height:0;display:flex;flex-direction:column;overflow:hidden}
-  .list{border-right:1px solid var(--line);background:var(--surface)}
+  .list{width:var(--listw,230px);flex:none;border-right:1px solid var(--line);background:var(--surface)}
+  .editor{flex:1 1 auto;min-width:0;position:relative}
+  .bot{width:var(--botw,340px);flex:none}
+  .notes.list-hidden .list,.notes.list-hidden #rezList{display:none}
+  .notes.bot-hidden .bot,.notes.bot-hidden #rezBot{display:none}
+  /* drag handles between panes */
+  .rez{flex:none;width:6px;cursor:col-resize;background:transparent;position:relative;z-index:2}
+  .rez:before{content:"";position:absolute;inset:0 2px;border-radius:3px;background:var(--line);opacity:0;transition:opacity .12s}
+  .rez:hover:before,body.rezng .rez:before{opacity:1;background:var(--accent-line)}
+  body.rezng{cursor:col-resize;user-select:none}
+  /* collapse buttons + reveal tabs */
+  .paneclose{width:26px;height:26px;flex-shrink:0;border:1px solid var(--line);background:var(--surface-2);color:var(--muted);border-radius:8px;cursor:pointer;font-size:14px;line-height:1;display:flex;align-items:center;justify-content:center}
+  .paneclose:hover{border-color:var(--accent-line);color:var(--accent-ink);background:var(--accent-bg)}
+  .revealtab{position:absolute;top:16px;z-index:6;display:none;align-items:center;gap:6px;writing-mode:vertical-rl;padding:12px 5px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--accent-ink);font-size:11.5px;font-weight:600;letter-spacing:.02em;cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08)}
+  .revealtab:hover{background:var(--accent-bg);border-color:var(--accent-line)}
+  .revealtab.left{left:8px}
+  .revealtab.right{right:8px}
+  .notes.list-hidden .revealtab.left{display:flex}
+  .notes.bot-hidden .revealtab.right{display:flex}
   .list .lh{padding:12px 14px;display:flex;gap:8px;align-items:center;border-bottom:1px solid var(--line-soft)}
   .list .lh input{flex:1;border:1px solid var(--line);background:var(--surface-2);border-radius:8px;padding:7px 10px;font-size:12.5px;color:var(--ink);outline:none}
   .newbtn{width:34px;height:34px;flex-shrink:0;border-radius:9px;border:none;background:var(--accent);color:#fff;cursor:pointer;font-size:19px;line-height:1}
@@ -278,8 +296,9 @@
   }
 
   @media (max-width:1000px){
-    .notes{grid-template-columns:1fr}
-    .list,.bot{display:none}
+    .list,.bot,.rez{display:none!important}
+    .revealtab{display:none!important}
+    .editor{flex:1 1 100%}
   }
 
   /* ---- shared: segmented toggle ---- */
@@ -292,10 +311,23 @@
   .notesbar{display:flex;align-items:center;gap:14px;padding:9px 18px;border-bottom:1px solid var(--line);background:var(--surface)}
   .notesbar-hint{font-size:11.5px;color:var(--muted)}
   .notes{border-top:none}
-  .etools{display:flex;flex-wrap:wrap;gap:4px;margin-top:9px}
-  .etools button{border:1px solid var(--line);background:var(--surface-2);color:var(--ink-soft);border-radius:7px;padding:4px 9px;font-size:11.5px;cursor:pointer;line-height:1.1}
+  /* ---- formatting ribbon (Word-like) ---- */
+  .etools{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin-top:10px;padding:6px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px}
+  .etools button{border:1px solid transparent;background:none;color:var(--ink-soft);border-radius:7px;padding:4px 8px;font-size:12px;cursor:pointer;line-height:1.1;min-width:26px;display:inline-flex;align-items:center;justify-content:center}
   .etools button:hover{border-color:var(--accent-line);color:var(--accent-ink);background:var(--accent-bg)}
-  .etsep{width:1px;background:var(--line);margin:2px 4px}
+  .etools button.on{border-color:var(--accent-line);color:var(--accent-ink);background:var(--accent-bg)}
+  .etools select{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:7px;padding:4px 5px;font-size:12px;cursor:pointer;outline:none;max-width:130px}
+  .etsep{width:1px;align-self:stretch;background:var(--line);margin:2px 4px}
+  .etgrp{display:inline-flex;align-items:center;gap:3px}
+  /* colour + highlight controls */
+  .colorwrap{position:relative;display:inline-flex;align-items:center;border:1px solid transparent;border-radius:7px;padding:2px 4px;cursor:pointer}
+  .colorwrap:hover{border-color:var(--accent-line);background:var(--accent-bg)}
+  .colorwrap .clab{font-size:13px;font-weight:700;line-height:1;color:var(--ink-soft)}
+  .colorwrap .cbar{height:3px;border-radius:2px;margin-top:1px}
+  .colorwrap input[type=color]{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer;border:none;padding:0}
+  .hlswatch{width:17px;height:17px;border-radius:5px;border:1px solid rgba(0,0,0,.18);cursor:pointer;padding:0}
+  .hlswatch:hover{transform:scale(1.12);box-shadow:0 0 0 2px var(--accent-line)}
+  .hlswatch.erase{background:var(--surface);display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);border-color:var(--line)}
   .ebody h1{font-family:var(--font-serif);font-size:24px;font-weight:700;margin:16px 0 6px;color:var(--ink)}
   .ebody h2{font-family:var(--font-serif);font-size:19px;font-weight:600;margin:14px 0 5px;color:var(--accent-ink);border-bottom:1px solid var(--line-soft);padding-bottom:3px}
   .ebody h3{font-family:var(--font-serif);font-size:16px;font-weight:600;margin:12px 0 4px;color:var(--ink)}
@@ -474,6 +506,12 @@
   .readarea[data-rth="sepia"]{background:#f2e5cf}
   .readarea[data-rth="night"]{background:#14151b}
   .readdoc{max-width:720px;margin:0 auto;font-family:var(--font-serif);line-height:1.8;white-space:pre-wrap;word-wrap:break-word}
+  .rdtext mark.rmark{color:#1a1a1a;padding:0 1px;border-radius:2px}
+  .rdhl{display:inline-flex;align-items:center;gap:5px}
+  .rdhl .rdhl-lbl{font-size:11px;color:var(--muted);margin-right:1px}
+  .rdhl .hlswatch{width:18px;height:18px;border-radius:5px;border:1px solid rgba(0,0,0,.2);cursor:pointer;padding:0}
+  .rdhl .hlswatch:hover{transform:scale(1.12);box-shadow:0 0 0 2px var(--accent-line)}
+  .rdhl .hlswatch.erase{background:var(--surface);display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);border-color:var(--line)}
   .readarea[data-rth="paper"] .readdoc{color:#2a2620}
   .readarea[data-rth="sepia"] .readdoc{color:#4a3a24}
   .readarea[data-rth="night"] .readdoc{color:#cdd0da}
@@ -490,6 +528,114 @@
   .dictpop .dpos{font-size:11px;color:var(--accent-ink);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin-top:6px}
   .dictpop .dmean{font-size:12.5px;color:var(--ink-soft);line-height:1.5;margin-top:2px}
   .dictpop .dx{position:absolute;top:8px;right:10px;border:none;background:none;color:var(--muted);cursor:pointer;font-size:15px}
+  /* ---- book browser (Reading corner) ---- */
+  .bkpanel{flex:1;min-height:0;overflow:auto;padding:20px 20px 60px;background:var(--surface-2)}
+  .bkpanelwrap{max-width:920px;margin:0 auto}
+  .bktop{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:12px}
+  .bktop input{flex:1;min-width:180px;height:38px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r);background:var(--surface);color:var(--ink);font-family:var(--font-sans);font-size:13.5px}
+  .bkchips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:16px}
+  .bkchip{border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);border-radius:999px;padding:5px 12px;font-size:12px;cursor:pointer}
+  .bkchip:hover{background:var(--accent-bg);color:var(--accent-ink);border-color:var(--accent-line)}
+  .bkresults{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:14px}
+  .bkcard{background:var(--surface);border:1px solid var(--line);border-radius:var(--r-lg);padding:12px;display:flex;flex-direction:column;gap:8px}
+  .bkcard .bkcov{width:100%;height:150px;border-radius:8px;background:var(--surface-3) center/cover no-repeat;display:flex;align-items:center;justify-content:center;color:var(--muted);font-size:11px;overflow:hidden;flex-shrink:0}
+  .bkcard .bkcov svg{width:34px;height:34px;opacity:.5}
+  .bkcard .bkt{font-family:var(--font-serif);font-size:14px;font-weight:600;line-height:1.3}
+  .bkcard .bka{font-size:11.5px;color:var(--muted)}
+  .bkcard .bktag{display:inline-block;font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--good);margin-top:-2px}
+  .bkcard .bktag.paid{color:var(--brass)}
+  .bkacts{display:flex;flex-wrap:wrap;gap:6px;margin-top:auto}
+  .bkacts .btn,.bkacts a.btn{padding:6px 10px;font-size:11.5px;text-decoration:none}
+  .bkbusy,.bkmsg{grid-column:1/-1;text-align:center;color:var(--muted);padding:30px 10px;font-size:13px}
+  .bkclose{margin-left:auto}
+
+  /* ============================================================
+     IMMERSIVE ANIMATIONS  (all gated by :root[data-anim="on"])
+     A single toggle sets/removes data-anim="on" on <html>.
+     Nothing below animates unless that attribute is present, so
+     "off" is a guaranteed still, calm interface.
+     ============================================================ */
+  @keyframes lexFadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes lexPop{0%{opacity:0;transform:scale(.9)}60%{transform:scale(1.02)}100%{opacity:1;transform:scale(1)}}
+  @keyframes lexSheen{from{background-position:-140% 0}to{background-position:140% 0}}
+  @keyframes lexFloatIn{0%{opacity:0;transform:translateY(14px) scale(.96)}100%{opacity:1;transform:none}}
+
+  :root[data-anim="on"] .view.on{animation:lexFadeUp .38s cubic-bezier(.22,.61,.36,1)}
+  :root[data-anim="on"] .nav button,
+  :root[data-anim="on"] .tbtn,
+  :root[data-anim="on"] .btn,
+  :root[data-anim="on"] .seg-b{transition:background .2s ease,color .2s ease,border-color .2s ease,transform .12s ease,box-shadow .2s ease}
+  :root[data-anim="on"] .tbtn:active,
+  :root[data-anim="on"] .btn:active,
+  :root[data-anim="on"] .nav button:active{transform:translateY(1px) scale(.98)}
+  :root[data-anim="on"] .nav button:hover{transform:translateX(2px)}
+  :root[data-anim="on"] .card,
+  :root[data-anim="on"] .kbcard,
+  :root[data-anim="on"] .exact,
+  :root[data-anim="on"] .flip,
+  :root[data-anim="on"] .stk{transition:transform .18s ease,box-shadow .22s ease}
+  :root[data-anim="on"] .card:hover,
+  :root[data-anim="on"] .kbcard:hover,
+  :root[data-anim="on"] .exact:hover,
+  :root[data-anim="on"] .stk:hover{transform:translateY(-3px);box-shadow:var(--shadow)}
+  :root[data-anim="on"] .modal.open .sheet,
+  :root[data-anim="on"] .prstage.open .slide{animation:lexPop .3s cubic-bezier(.22,.61,.36,1)}
+  :root[data-anim="on"] #toast.show{animation:lexFloatIn .32s cubic-bezier(.22,.61,.36,1)}
+  /* NB: the OS "reduce motion" preference only decides the DEFAULT (see JS); once the
+     user toggles animations on, their choice wins — so nothing is forced off here. */
+
+  /* ============================================================
+     P  —  the little companion who keeps Anwesha company
+     ============================================================ */
+  /* P is docked in the left rail, just above the profile card */
+  .paldock{position:relative;margin-top:10px;padding:9px 8px 7px;border:1px solid var(--line);
+       border-radius:var(--r);background:var(--surface-2);display:flex;flex-direction:column;align-items:center;gap:3px}
+  #pal{width:58px;height:58px;cursor:pointer;user-select:none;-webkit-user-select:none;
+       opacity:0;transform:translateY(10px) scale(.92);transition:opacity .45s ease,transform .45s cubic-bezier(.22,1.2,.4,1),width .28s ease,height .28s ease}
+  #pal.here{opacity:1;transform:none}
+  #pal.big{width:104px;height:104px}
+  #pal svg{width:100%;height:100%;display:block;overflow:visible}
+  #palBob{transform-origin:50% 92%}
+  /* gentle breathing + sway, only when animations are on */
+  :root[data-anim="on"] #palBob{animation:palBreathe 4s ease-in-out infinite}
+  @keyframes palBreathe{0%,100%{transform:translateY(0) rotate(0)}50%{transform:translateY(-2.5px) rotate(-1.4deg)}}
+  #palArm{transform-origin:20% 88%;transform-box:fill-box}
+  #pal.wave #palArm{animation:palWave .5s ease-in-out 3}
+  @keyframes palWave{0%,100%{transform:rotate(0)}50%{transform:rotate(-28deg)}}
+  /* the "here / online" presence ring — the Snapchat-y touch */
+  #palRing{transform-origin:center;transform-box:fill-box;opacity:0}
+  :root[data-anim="on"] #pal.here #palRing{animation:palPresence 2.8s ease-out infinite}
+  @keyframes palPresence{0%{opacity:.45;transform:scale(.6)}70%{opacity:0;transform:scale(1.12)}100%{opacity:0}}
+  #pal .dot{fill:var(--good)}
+  #pal:hover #palBob{animation-play-state:paused}
+  #pal:active{transform:scale(.95)}
+  .paltag{font-size:10px;color:var(--muted);letter-spacing:.02em;font-weight:500;text-align:center}
+  .paltag b{color:var(--accent-ink)}
+  /* enlarge / shrink toggle */
+  .palsize{position:absolute;top:5px;right:5px;width:20px;height:20px;padding:0;border:1px solid var(--line);
+       background:var(--surface);border-radius:6px;color:var(--ink-soft);cursor:pointer;font-size:11px;line-height:1;
+       display:flex;align-items:center;justify-content:center}
+  .palsize:hover{background:var(--accent-bg);color:var(--accent-ink);border-color:var(--accent-line)}
+
+  /* speech bubble — appears to the RIGHT of P (P lives on the left edge) */
+  #palBubble{position:fixed;z-index:81;max-width:210px;
+       background:var(--surface);color:var(--ink);border:1px solid var(--line);
+       border-radius:14px;padding:10px 13px;font-family:var(--font-sans);font-size:12.5px;line-height:1.45;
+       box-shadow:var(--shadow);opacity:0;pointer-events:none;transform:translateX(-6px) scale(.96);
+       transition:opacity .28s ease,transform .28s cubic-bezier(.22,1.2,.4,1)}
+  #palBubble.show{opacity:1;transform:none}
+  #palBubble::after{content:"";position:absolute;left:-7px;top:18px;width:12px;height:12px;
+       background:var(--surface);border-left:1px solid var(--line);border-bottom:1px solid var(--line);
+       transform:rotate(45deg)}
+  #palBubble b{color:var(--accent-ink)}
+  /* slim "bring P back" button shown in the rail when P is hidden */
+  #palPeek{display:none;margin-top:10px;width:100%;padding:8px;border:1px dashed var(--line);
+       background:var(--surface-2);color:var(--ink-soft);cursor:pointer;border-radius:var(--r);
+       font-family:var(--font-sans);font-size:11.5px;text-align:center}
+  #palPeek.on{display:block}
+  #palPeek:hover{background:var(--accent-bg);color:var(--accent-ink);border-color:var(--accent-line)}
+  /* animation toggle button active state */
+  .tbtn.animon{color:var(--accent-ink);border-color:var(--accent-line);background:var(--accent-bg)}
 </style>
 </head>
 <body>
@@ -511,6 +657,60 @@
       <button data-v="resume"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 3h9l3 3v15H6zM9 11h6M9 15h6M9 7h2" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Resume builder</button>
       <button data-v="space"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M3 9h18M8 2v4M16 2v4" stroke-linecap="round" stroke-linejoin="round"/></svg></span>My space</button>
     </nav>
+    <!-- P — the panda companion, docked above the profile -->
+    <div class="paldock" id="palDock">
+      <button class="palsize" id="palSize" title="Enlarge P">⤢</button>
+      <div id="pal" role="button" title="Hi, I'm P — click me!" aria-label="P, your panda companion">
+        <svg viewBox="0 0 100 100">
+          <!-- presence ring (online glow) -->
+          <ellipse id="palRing" cx="50" cy="52" rx="36" ry="36" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
+          <g id="palBob">
+            <!-- spread sitting feet with big pink paw pads facing us -->
+            <ellipse cx="29" cy="79" rx="13" ry="10.5" fill="#232323"/>
+            <ellipse cx="71" cy="79" rx="13" ry="10.5" fill="#232323"/>
+            <ellipse cx="29" cy="80" rx="6.2" ry="4.8" fill="#F7A8B8"/>
+            <ellipse cx="71" cy="80" rx="6.2" ry="4.8" fill="#F7A8B8"/>
+            <circle cx="23" cy="73.5" r="1.8" fill="#F7A8B8"/><circle cx="29" cy="72.4" r="1.8" fill="#F7A8B8"/><circle cx="35" cy="73.5" r="1.8" fill="#F7A8B8"/>
+            <circle cx="65" cy="73.5" r="1.8" fill="#F7A8B8"/><circle cx="71" cy="72.4" r="1.8" fill="#F7A8B8"/><circle cx="77" cy="73.5" r="1.8" fill="#F7A8B8"/>
+            <!-- arms resting down at the sides (left = waves on click) -->
+            <g id="palArm"><ellipse cx="23" cy="60" rx="7" ry="12" fill="#232323" transform="rotate(14 23 60)"/></g>
+            <ellipse cx="77" cy="60" rx="7" ry="12" fill="#232323" transform="rotate(-14 77 60)"/>
+            <!-- black torso -->
+            <path d="M28 80 Q24 50 50 50 Q76 50 72 80 Q61 86 50 86 Q39 86 28 80Z" fill="#232323"/>
+            <!-- white belly -->
+            <ellipse cx="50" cy="70" rx="15" ry="14" fill="#fff"/>
+            <!-- ears + pink inner ears -->
+            <circle cx="28" cy="19" r="12" fill="#232323"/>
+            <circle cx="72" cy="19" r="12" fill="#232323"/>
+            <circle cx="28" cy="19" r="5.5" fill="#F7A8B8"/>
+            <circle cx="72" cy="19" r="5.5" fill="#F7A8B8"/>
+            <!-- face -->
+            <circle cx="50" cy="35" r="24" fill="#fff"/>
+            <!-- eye patches (tilted) -->
+            <ellipse cx="39" cy="34" rx="8" ry="10.5" fill="#232323" transform="rotate(-14 39 34)"/>
+            <ellipse cx="61" cy="34" rx="8" ry="10.5" fill="#232323" transform="rotate(14 61 34)"/>
+            <!-- closed happy eyes (white squint arcs) -->
+            <g id="palEyes" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round">
+              <path d="M35 36.5 Q39 31 43 36.5"/>
+              <path d="M57 36.5 Q61 31 65 36.5"/>
+            </g>
+            <!-- cheeks -->
+            <ellipse cx="30.5" cy="43.5" rx="4.4" ry="3.2" fill="#F7A8B8" opacity=".85"/>
+            <ellipse cx="69.5" cy="43.5" rx="4.4" ry="3.2" fill="#F7A8B8" opacity=".85"/>
+            <!-- nose -->
+            <ellipse cx="50" cy="41" rx="2.6" ry="1.9" fill="#232323"/>
+            <!-- big open happy smile with a little tongue -->
+            <path d="M41 44 Q50 45.5 59 44 Q57 55 50 55 Q43 55 41 44Z" fill="#232323"/>
+            <ellipse cx="50" cy="52.6" rx="4" ry="2.3" fill="#E4708A"/>
+            <!-- online dot -->
+            <circle class="dot" cx="74" cy="14" r="4.3" stroke="#fff" stroke-width="2"/>
+          </g>
+        </svg>
+      </div>
+      <div class="paltag"><b>P</b> · <span id="palStatus">keeping you company</span></div>
+    </div>
+    <button id="palPeek" title="Bring P back">🐼 Bring P back</button>
+
     <div class="prof">
       <div class="av">AM</div>
       <div class="pn" contenteditable="true" data-k="name">Anwesha Mishra</div>
@@ -525,6 +725,7 @@
       <span class="ttl" id="crumb">Notes</span>
       <div class="spacer"></div>
       <button class="tbtn" id="keyBtn"><span class="keydot" id="keydot"></span>Gemini key</button>
+      <button class="tbtn sq" id="animBtn" title="Animations on / off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.9 4.5L18 9l-4.1 1.5L12 15l-1.9-4.5L6 9l4.1-1.5zM18 14l.9 2.2L21 17l-2.1.8L18 20l-.9-2.2L15 17l2.1-.8zM6 15l.7 1.6L8 17l-1.3.4L6 19l-.7-1.6L4 17l1.3-.4z" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <button class="tbtn sq" id="themeBtn" title="Light / dark"><svg id="themeIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <button class="tbtn sq" id="fsBtn" title="Fullscreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
@@ -554,33 +755,89 @@
         <div class="stickies" id="stickies"></div>
       </div>
       <!-- NOTEBOOK -->
-      <div class="notes" data-nview="doc">
+      <div class="notes" data-nview="doc" id="notesDoc">
         <!-- list -->
         <div class="pane list">
           <div class="lh">
             <input id="search" placeholder="Search notes…">
             <button class="iconbtn" id="importNote" title="Import PDF, Word or text file"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 15V4M8 8l4-4 4 4M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
             <button class="newbtn" id="newNote" title="New note">+</button>
+            <button class="paneclose" id="listCollapse" title="Hide the notes list">«</button>
           </div>
           <input type="file" id="fileInput" accept=".pdf,.docx,.doc,.txt,.md" style="display:none">
           <div class="items" id="items"></div>
         </div>
+        <div class="rez" id="rezList" title="Drag to resize"></div>
         <!-- editor -->
         <div class="pane editor">
+          <button class="revealtab left" id="showList" title="Show the notes list">📄 Notes</button>
+          <button class="revealtab right" id="showBot" title="Show Ask Gemini">✦ Ask Gemini</button>
           <div class="ehead">
             <input class="etitle" id="etitle" placeholder="Untitled note">
             <div class="etools" id="etools">
-              <button data-cmd="h1" title="Header (big section)">H1</button>
-              <button data-cmd="h2" title="Module">Module</button>
-              <button data-cmd="h3" title="Topic">Topic</button>
-              <button data-cmd="h4" title="Sub-topic">Sub·topic</button>
-              <button data-cmd="p" title="Normal text">Body</button>
+              <select id="etStyle" title="Text style">
+                <option value="p">Body text</option>
+                <option value="h1">Header (H1)</option>
+                <option value="h2">Module (H2)</option>
+                <option value="h3">Topic (H3)</option>
+                <option value="h4">Sub-topic (H4)</option>
+              </select>
+              <select id="etFont" title="Font">
+                <option value="">Default font</option>
+                <option value="Georgia, 'Times New Roman', serif">Serif</option>
+                <option value="system-ui, 'Segoe UI', Arial, sans-serif">Sans-serif</option>
+                <option value="'Consolas', 'Courier New', monospace">Monospace</option>
+                <option value="Arial, sans-serif">Arial</option>
+                <option value="'Times New Roman', serif">Times New Roman</option>
+                <option value="'Calibri', sans-serif">Calibri</option>
+                <option value="'Verdana', sans-serif">Verdana</option>
+              </select>
+              <select id="etSize" title="Font size">
+                <option value="">Size</option>
+                <option value="12px">12</option>
+                <option value="14px">14</option>
+                <option value="16px">16</option>
+                <option value="18px">18</option>
+                <option value="20px">20</option>
+                <option value="24px">24</option>
+                <option value="28px">28</option>
+                <option value="34px">34</option>
+              </select>
               <span class="etsep"></span>
-              <button data-cmd="bold" title="Bold"><b>B</b></button>
-              <button data-cmd="italic" title="Italic"><i>I</i></button>
-              <button data-cmd="ul" title="Bullet list">• List</button>
-              <button data-cmd="ol" title="Numbered list">1. List</button>
-              <button data-cmd="hl" title="Highlight">Mark</button>
+              <span class="etgrp">
+                <button data-cmd="bold" title="Bold"><b>B</b></button>
+                <button data-cmd="italic" title="Italic"><i>I</i></button>
+                <button data-cmd="underline" title="Underline"><u>U</u></button>
+                <button data-cmd="strike" title="Strikethrough"><s>S</s></button>
+              </span>
+              <span class="etsep"></span>
+              <label class="colorwrap" title="Text colour">
+                <span style="display:flex;flex-direction:column;align-items:center"><span class="clab">A</span><span class="cbar" id="etColorBar" style="background:#8C2F43;width:15px"></span></span>
+                <input type="color" id="etColor" value="#8C2F43">
+              </label>
+              <span class="etgrp" id="etHl" title="Highlighter">
+                <button class="hlswatch" data-hlc="#FDE68A" style="background:#FDE68A" title="Yellow"></button>
+                <button class="hlswatch" data-hlc="#BBF7D0" style="background:#BBF7D0" title="Green"></button>
+                <button class="hlswatch" data-hlc="#BFDBFE" style="background:#BFDBFE" title="Blue"></button>
+                <button class="hlswatch" data-hlc="#FBCFE8" style="background:#FBCFE8" title="Pink"></button>
+                <button class="hlswatch" data-hlc="#FED7AA" style="background:#FED7AA" title="Orange"></button>
+                <button class="hlswatch erase" data-hlc="none" title="Remove highlight">⌫</button>
+              </span>
+              <span class="etsep"></span>
+              <span class="etgrp">
+                <button data-cmd="ul" title="Bullet list">•</button>
+                <button data-cmd="ol" title="Numbered list">1.</button>
+                <button data-cmd="indent" title="Increase indent">⇥</button>
+                <button data-cmd="outdent" title="Decrease indent">⇤</button>
+              </span>
+              <span class="etsep"></span>
+              <span class="etgrp">
+                <button data-cmd="left" title="Align left">☰</button>
+                <button data-cmd="center" title="Align centre">≡</button>
+                <button data-cmd="right" title="Align right">☰</button>
+              </span>
+              <span class="etsep"></span>
+              <button data-cmd="clear" title="Clear formatting">✕ Clear</button>
             </div>
             <div class="emeta">
               <span id="esaved">Saved</span>
@@ -590,11 +847,13 @@
           </div>
           <div class="ebody" id="ebody" contenteditable="true" data-ph="Start writing your notes here…"></div>
         </div>
+        <div class="rez" id="rezBot" title="Drag to resize"></div>
         <!-- bot -->
         <div class="pane bot">
           <div class="both">
             <div class="bi"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M13 4l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" stroke-linejoin="round"/></svg></div>
-            <div><div class="bt">Ask Gemini</div><div class="bs">Doubts, cases, explanations</div></div>
+            <div style="flex:1"><div class="bt">Ask Gemini</div><div class="bs">Doubts, cases, explanations</div></div>
+            <button class="paneclose" id="botCollapse" title="Hide the Ask Gemini panel">»</button>
           </div>
           <div class="thread" id="thread">
             <div class="bwelcome">Ask any doubt while you write — <b>“What is the doctrine of frustration?”</b>, <b>“Summarise Article 21”</b>, or tap a law topic below. Answers can be inserted straight into your note.</div>
@@ -643,10 +902,11 @@
         <div class="expane">
           <p class="exeyebrow">Spaced practice</p>
           <h1 class="exh1">Flashcards</h1>
-          <p class="exlead">Flip-card decks for cases, maxims and quick revision. Make your own, or let Gemini build one from a note or a topic.</p>
+          <p class="exlead">Flip-card decks for cases, maxims and quick revision. Make your own, let Gemini build one from a topic, or pull a fresh legal current-affairs GK deck.</p>
           <div class="resactions" style="margin-bottom:20px">
             <button class="btn pri" id="cardNewDeck">+ New deck</button>
             <button class="btn" id="cardGenDeck"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><path d="M13 4l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" stroke-linejoin="round"/></svg>Generate with Gemini</button>
+            <button class="btn" id="cardGenGk" title="Fresh legal general-knowledge &amp; current-affairs cards (needs your Gemini key)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><path d="M4 5h13l3 3v11H4zM8 3v4M12 3v4M8 12h8M8 16h5" stroke-linecap="round" stroke-linejoin="round"/></svg>Legal GK &amp; current affairs</button>
           </div>
           <div class="deckgrid" id="deckGrid"></div>
         </div>
@@ -839,9 +1099,10 @@
     <section class="view" data-view="read">
       <div class="readwrap">
         <div class="readbar">
-          <select class="resin" id="rdLib" style="width:auto;max-width:220px" title="Library"></select>
-          <button class="btn" id="rdImport" title="Upload a .txt, .md or PDF"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><path d="M12 15V4M8 8l4-4 4 4M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload</button>
-          <input type="file" id="rdFile" accept=".txt,.md,.pdf" style="display:none">
+          <button class="btn pri" id="bkToggle" title="Find free & paid books online, or open your library"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.2-3.2" stroke-linecap="round"/></svg>Find books</button>
+          <select class="resin" id="rdLib" style="width:auto;max-width:200px" title="Library"></select>
+          <button class="btn" id="rdImport" title="Upload .txt, .md or PDF files (you can pick several)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><path d="M12 15V4M8 8l4-4 4 4M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg>Upload</button>
+          <input type="file" id="rdFile" accept=".txt,.md,.pdf" multiple style="display:none">
           <button class="btn" id="rdPaste">Paste text</button>
           <span class="spacer"></span>
           <div class="seg" id="rdThemes">
@@ -851,6 +1112,31 @@
           </div>
           <button class="tbtn sq" id="rdMinus" title="Smaller text">A−</button>
           <button class="tbtn sq" id="rdPlus" title="Larger text">A+</button>
+          <div class="rdhl" id="rdHl" title="Select text in the book, then tap a colour to highlight">
+            <span class="rdhl-lbl">Highlight</span>
+            <button class="hlswatch" data-hlc="#FDE68A" style="background:#FDE68A" title="Yellow"></button>
+            <button class="hlswatch" data-hlc="#BBF7D0" style="background:#BBF7D0" title="Green"></button>
+            <button class="hlswatch" data-hlc="#BFDBFE" style="background:#BFDBFE" title="Blue"></button>
+            <button class="hlswatch" data-hlc="#FBCFE8" style="background:#FBCFE8" title="Pink"></button>
+            <button class="hlswatch erase" data-hlc="none" title="Remove highlight from selection">⌫</button>
+          </div>
+        </div>
+        <!-- BOOK BROWSER (toggled by Find books) -->
+        <div class="bkpanel" id="bkPanel" style="display:none">
+          <div class="bkpanelwrap">
+            <div class="bktop">
+              <input id="bkQuery" placeholder="Search books — title, author or subject…">
+              <div class="seg" id="bkSrc">
+                <button class="seg-b on" data-src="gutenberg" title="Free public-domain books you can read right here">Free to read</button>
+                <button class="seg-b" data-src="openlib" title="The wider catalogue — borrow or buy">Borrow / buy</button>
+                <button class="seg-b" data-src="mylib" title="Books you've uploaded to this device">My library</button>
+              </div>
+              <button class="btn pri" id="bkSearch">Search</button>
+              <button class="btn bkclose" id="bkCloseBtn">Close</button>
+            </div>
+            <div class="bkchips" id="bkChips"></div>
+            <div class="bkresults" id="bkResults"></div>
+          </div>
         </div>
         <div class="readarea" id="rdArea">
           <div class="readdoc" id="rdDoc"></div>
@@ -1025,6 +1311,9 @@
   </div>
 </div>
 
+<!-- P's speech bubble (body-level so it floats over everything) -->
+<div id="palBubble"></div>
+
 <script>
 (function(){
   var LS=window.localStorage;
@@ -1035,6 +1324,17 @@
   var savedTheme=LS.getItem('lex_theme')||'light';
   root.setAttribute('data-theme',savedTheme);
   $('#themeBtn').onclick=function(){var n=root.getAttribute('data-theme')==='dark'?'light':'dark';root.setAttribute('data-theme',n);LS.setItem('lex_theme',n);};
+
+  /* ---------- animations toggle ---------- */
+  var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
+  var animOn=LS.getItem('lex_anim'); animOn = animOn===null ? !reduce : animOn==='on';
+  function applyAnim(){
+    root.setAttribute('data-anim', animOn?'on':'off');
+    var b=$('#animBtn'); if(b){b.classList.toggle('animon',animOn); b.title='Animations: '+(animOn?'on':'off');}
+  }
+  applyAnim();
+  $('#animBtn').onclick=function(){animOn=!animOn;LS.setItem('lex_anim',animOn?'on':'off');applyAnim();
+    if(window.Pal){animOn?Pal.say(Pal.pick(),3200):Pal.hideBubble();}};
 
   /* ---------- fullscreen ---------- */
   $('#fsBtn').onclick=function(){ if(!document.fullscreenElement){document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen();} else {document.exitFullscreen&&document.exitFullscreen();} };
@@ -1111,26 +1411,115 @@
   $('#delNote').onclick=function(){var n=cur();if(!n)return;if(!confirm('Delete “'+(n.title||'Untitled note')+'”?'))return;notes=notes.filter(function(x){return x.id!==n.id});curId=notes.length?notes[0].id:null;save();renderAll();};
   $('#search').addEventListener('input',renderList);
 
-  /* ----- editor formatting toolbar ----- */
+  /* ----- editor formatting ribbon (Word-like) ----- */
+  var ebody=$('#ebody'), savedRange=null;
+  /* remember the last selection made inside the editor so clicking a
+     dropdown / colour picker (which steals focus) doesn't lose it */
+  document.addEventListener('selectionchange',function(){
+    var s=window.getSelection();
+    if(s&&s.rangeCount){
+      var r=s.getRangeAt(0);
+      if(ebody.contains(r.commonAncestorContainer))savedRange=r.cloneRange();
+    }
+  });
+  function restoreSel(){
+    ebody.focus();
+    if(savedRange){var s=window.getSelection();s.removeAllRanges();s.addRange(savedRange);}
+  }
+  function styleCSS(on){try{document.execCommand('styleWithCSS',false,on);}catch(e){}}
+  function applyFontSize(px){
+    // execCommand fontSize only takes 1–7, so tag with size 7 then rewrite to px
+    styleCSS(true);
+    document.execCommand('fontSize',false,'7');
+    ebody.querySelectorAll('font[size="7"]').forEach(function(f){
+      f.removeAttribute('size');f.style.fontSize=px;
+    });
+    ebody.querySelectorAll('[style*="font-size: xxx-large"]').forEach(function(el){el.style.fontSize=px;});
+  }
   $('#etools').addEventListener('mousedown',function(e){
     var b=e.target.closest('button[data-cmd]');if(!b)return;
-    e.preventDefault(); // keep selection in the editor
+    e.preventDefault(); // keep the editor selection
     var cmd=b.getAttribute('data-cmd');
-    $('#ebody').focus();
-    if(cmd==='h1'||cmd==='h2'||cmd==='h3'||cmd==='h4'||cmd==='p'){
-      document.execCommand('formatBlock',false,'<'+cmd+'>');
-    }else if(cmd==='bold'){document.execCommand('bold');}
-    else if(cmd==='italic'){document.execCommand('italic');}
-    else if(cmd==='ul'){document.execCommand('insertUnorderedList');}
-    else if(cmd==='ol'){document.execCommand('insertOrderedList');}
-    else if(cmd==='hl'){
-      var sel=window.getSelection();
-      if(sel&&sel.rangeCount&&!sel.isCollapsed){
-        if(!document.execCommand('hiliteColor',false,'#f6e7e4'))document.execCommand('backColor',false,'#f6e7e4');
-      }
+    restoreSel();styleCSS(true);
+    switch(cmd){
+      case 'bold':document.execCommand('bold');break;
+      case 'italic':document.execCommand('italic');break;
+      case 'underline':document.execCommand('underline');break;
+      case 'strike':document.execCommand('strikeThrough');break;
+      case 'ul':document.execCommand('insertUnorderedList');break;
+      case 'ol':document.execCommand('insertOrderedList');break;
+      case 'indent':document.execCommand('indent');break;
+      case 'outdent':document.execCommand('outdent');break;
+      case 'left':document.execCommand('justifyLeft');break;
+      case 'center':document.execCommand('justifyCenter');break;
+      case 'right':document.execCommand('justifyRight');break;
+      case 'clear':document.execCommand('removeFormat');document.execCommand('formatBlock',false,'<p>');break;
     }
     touch();
   });
+  /* style / font / size dropdowns */
+  $('#etStyle').addEventListener('change',function(){
+    restoreSel();document.execCommand('formatBlock',false,'<'+this.value+'>');touch();
+  });
+  $('#etFont').addEventListener('change',function(){
+    restoreSel();styleCSS(true);
+    if(this.value)document.execCommand('fontName',false,this.value);
+    touch();this.selectedIndex=0;
+  });
+  $('#etSize').addEventListener('change',function(){
+    if(this.value){restoreSel();applyFontSize(this.value);touch();}
+    this.selectedIndex=0;
+  });
+  /* text colour */
+  $('#etColor').addEventListener('input',function(){
+    $('#etColorBar').style.background=this.value;
+    restoreSel();styleCSS(true);document.execCommand('foreColor',false,this.value);touch();
+  });
+  /* highlighter swatches */
+  $('#etHl').addEventListener('mousedown',function(e){
+    var b=e.target.closest('button[data-hlc]');if(!b)return;
+    e.preventDefault();
+    var c=b.getAttribute('data-hlc');
+    restoreSel();styleCSS(true);
+    var col=(c==='none')?'transparent':c;
+    if(!document.execCommand('hiliteColor',false,col))document.execCommand('backColor',false,col);
+    touch();
+  });
+
+  /* ----- collapsible + resizable notes panes ----- */
+  var notesEl=$('#notesDoc');
+  var notesUI=JSON.parse(LS.getItem('lex_notes_ui')||'{}');
+  function saveNotesUI(){LS.setItem('lex_notes_ui',JSON.stringify(notesUI));}
+  function applyNotesUI(){
+    if(notesUI.listw)notesEl.style.setProperty('--listw',notesUI.listw+'px');
+    if(notesUI.botw)notesEl.style.setProperty('--botw',notesUI.botw+'px');
+    notesEl.classList.toggle('list-hidden',!!notesUI.listHidden);
+    notesEl.classList.toggle('bot-hidden',!!notesUI.botHidden);
+  }
+  applyNotesUI();
+  $('#listCollapse').onclick=function(){notesUI.listHidden=true;saveNotesUI();applyNotesUI();};
+  $('#showList').onclick=function(){notesUI.listHidden=false;saveNotesUI();applyNotesUI();};
+  $('#botCollapse').onclick=function(){notesUI.botHidden=true;saveNotesUI();applyNotesUI();};
+  $('#showBot').onclick=function(){notesUI.botHidden=false;saveNotesUI();applyNotesUI();};
+  function initRez(rez,which){
+    rez.addEventListener('mousedown',function(e){
+      e.preventDefault();
+      var startX=e.clientX;
+      var pane=which==='list'?notesEl.querySelector('.list'):notesEl.querySelector('.bot');
+      var startW=pane.offsetWidth;
+      document.body.classList.add('rezng');
+      function mv(ev){
+        var dx=ev.clientX-startX;
+        var w=which==='list'?(startW+dx):(startW-dx);
+        w=Math.max(160,Math.min(560,w));
+        if(which==='list'){notesUI.listw=w;notesEl.style.setProperty('--listw',w+'px');}
+        else{notesUI.botw=w;notesEl.style.setProperty('--botw',w+'px');}
+      }
+      function up(){document.removeEventListener('mousemove',mv);document.removeEventListener('mouseup',up);document.body.classList.remove('rezng');saveNotesUI();}
+      document.addEventListener('mousemove',mv);document.addEventListener('mouseup',up);
+    });
+  }
+  initRez($('#rezList'),'list');initRez($('#rezBot'),'bot');
 
   /* ----- notebook / board toggle ----- */
   document.querySelectorAll('[data-nmode]').forEach(function(b){
@@ -2246,6 +2635,27 @@
       toast('Created “'+topic+'” · '+cards.length+' cards.');
     }catch(err){hideToast();toast(err&&err.nokey?'Add your free Gemini key first.':friendlyErr(err));}
   };
+  async function genGkDeck(n){
+    var pr='You are helping an Indian law lecturer and UGC-NET/judiciary aspirant revise legal general knowledge and current affairs. '
+      +'Create '+n+' flashcards covering important and reasonably recent Indian legal GK — e.g. the three new criminal laws (Bharatiya Nyaya Sanhita, Bharatiya Nagarik Suraksha Sanhita, Bharatiya Sakshya Adhiniyam) and what they replace, notable Supreme Court judgments and constitutional developments, key legal appointments and institutions, landmark legislation, and legal terms in the news. '
+      +'Prefer well-established, verifiable facts over uncertain very-recent ones, and do NOT fabricate. '
+      +'Return ONLY a valid JSON array; each element {"f":"front — a crisp question","b":"back — a short, accurate answer (1-2 sentences)"}.';
+    var data=await geminiFetch({contents:[{role:'user',parts:[{text:pr}]}],generationConfig:{temperature:0.5,responseMimeType:'application/json'}});
+    var arr=jsonExtract(geminiText(data));
+    return (Array.isArray(arr)?arr:(arr.cards||[])).map(function(o){return {f:String(o.f||o.front||''),b:String(o.b||o.back||''),known:false};}).filter(function(c){return c.f&&c.b;});
+  }
+  $('#cardGenGk').onclick=async function(){
+    if(!getKey()){toast('Add your free Gemini key first.');$('#keyBtn').click();return;}
+    toast('Gemini is gathering legal GK & current affairs…',true);
+    try{
+      var cards=await genGkDeck(15);hideToast();
+      if(!cards.length){toast('No cards came back — try again.');return;}
+      var stamp=new Date().toLocaleDateString(undefined,{month:'short',year:'numeric'});
+      var deck={id:Date.now(),name:'Legal GK & current affairs · '+stamp,ts:Date.now(),cards:cards};
+      decks.unshift(deck);saveCards();renderDeckGrid();
+      toast('Created a fresh GK deck · '+cards.length+' cards.');
+    }catch(err){hideToast();toast(err&&err.nokey?'Add your free Gemini key first.':friendlyErr(err));}
+  };
   renderDeckGrid();
 
   /* ========== PRESENTATIONS ========== */
@@ -2336,25 +2746,92 @@
     {id:'b_udhr',title:'Universal Declaration of Human Rights (excerpt)',by:'United Nations, 1948',text:'Article 1\nAll human beings are born free and equal in dignity and rights. They are endowed with reason and conscience and should act towards one another in a spirit of brotherhood.\n\nArticle 2\nEveryone is entitled to all the rights and freedoms set forth in this Declaration, without distinction of any kind, such as race, colour, sex, language, religion, political or other opinion, national or social origin, property, birth or other status.\n\nArticle 3\nEveryone has the right to life, liberty and security of person.\n\nArticle 5\nNo one shall be subjected to torture or to cruel, inhuman or degrading treatment or punishment.\n\nArticle 7\nAll are equal before the law and are entitled without any discrimination to equal protection of the law.'},
     {id:'b_fox',title:'The Fox and the Grapes',by:'Aesop · public domain',text:'A hungry Fox saw some fine bunches of Grapes hanging from a vine that was trained along a high trellis, and did his best to reach them by jumping as high as he could into the air. But it was all in vain, for they were just out of reach: so he gave up trying, and walked away with an air of dignity and unconcern, remarking, “I thought those Grapes were ripe, but I see now they are quite sour.”'}
   ];
-  var readingUser=JSON.parse(LS.getItem('lex_reading')||'[]');
+  var readingUser=[];
   var readPrefs=JSON.parse(LS.getItem('lex_read_prefs')||'{}');
   if(!readPrefs.theme)readPrefs.theme='paper';if(!readPrefs.size)readPrefs.size=18;if(!readPrefs.last)readPrefs.last='b_preamble';
-  function saveReading(){LS.setItem('lex_reading',JSON.stringify(readingUser));}
+  if(!readPrefs.hl)readPrefs.hl={};
+  var curReadDoc=null;
+  /* personal library lives in IndexedDB (much bigger than localStorage's ~5MB), with a localStorage fallback */
+  var useIDB=(function(){try{return 'indexedDB' in window && !!window.indexedDB;}catch(e){return false;}})();
+  function idbOpen(){return new Promise(function(res,rej){var r=indexedDB.open('lexReading',1);r.onupgradeneeded=function(){r.result.createObjectStore('kv');};r.onsuccess=function(){res(r.result);};r.onerror=function(){rej(r.error);};});}
+  function idbGet(k){return idbOpen().then(function(db){return new Promise(function(res,rej){var t=db.transaction('kv','readonly').objectStore('kv').get(k);t.onsuccess=function(){res(t.result);};t.onerror=function(){rej(t.error);};});});}
+  function idbPut(k,v){return idbOpen().then(function(db){return new Promise(function(res,rej){var t=db.transaction('kv','readwrite').objectStore('kv').put(v,k);t.onsuccess=function(){res();};t.onerror=function(){rej(t.error);};});});}
+  function saveReading(){
+    if(useIDB){idbPut('lex_reading',readingUser).catch(function(){try{LS.setItem('lex_reading',JSON.stringify(readingUser));}catch(e){toast('Storage is full — remove a book to add more.');}});}
+    else{try{LS.setItem('lex_reading',JSON.stringify(readingUser));}catch(e){toast('This book is too large for offline storage on this browser.');}}
+  }
+  function loadReadingLib(){
+    var legacy=[];try{legacy=JSON.parse(LS.getItem('lex_reading')||'[]');}catch(e){}
+    if(!useIDB){readingUser=legacy;return Promise.resolve();}
+    return idbGet('lex_reading').then(function(v){
+      if(Array.isArray(v)&&v.length){readingUser=v;}
+      else{readingUser=legacy;if(legacy.length)idbPut('lex_reading',readingUser);}
+      if(legacy.length)LS.removeItem('lex_reading'); /* migrated → free the localStorage space */
+    }).catch(function(){readingUser=legacy;});
+  }
   function saveReadPrefs(){LS.setItem('lex_read_prefs',JSON.stringify(readPrefs));}
   function readAll(){return READ_BUILTIN.concat(readingUser);}
   function fillRdLib(){
     $('#rdLib').innerHTML=READ_BUILTIN.map(function(d){return '<option value="'+d.id+'">'+esc(d.title)+'</option>';}).join('')
       +(readingUser.length?('<optgroup label="Your library">'+readingUser.map(function(d){return '<option value="'+escA(d.id)+'">'+esc(d.title)+'</option>';}).join('')+'</optgroup>'):'');
   }
+  function paintDoc(d){
+    var doc=$('#rdDoc');curReadDoc=d;
+    doc.innerHTML='<span class="rdtitle">'+esc(d.title)+'</span>'+(d.by?'<span class="rdby">'+esc(d.by)+'</span>':'')+'<span class="rdtext" id="rdText"></span>';
+    renderHl(d.id);
+    doc.style.fontSize=readPrefs.size+'px';
+    $('#rdArea').setAttribute('data-rth',readPrefs.theme);$('#rdArea').scrollTop=0;
+    document.querySelectorAll('#rdThemes [data-rth]').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-rth')===readPrefs.theme);});
+    closeBrowse();
+  }
+  /* ---- reading highlighter (saved as character ranges per book) ---- */
+  function renderHl(id){
+    var box=$('#rdText');if(!box||!curReadDoc)return;
+    var t=curReadDoc.text||'';
+    var arr=(readPrefs.hl[id]||[]).slice().sort(function(a,b){return a.start-b.start;});
+    var out='',pos=0;
+    arr.forEach(function(h){
+      var s=Math.max(h.start,pos),e=h.end;
+      if(e<=s)return;
+      out+=esc(t.slice(pos,s))+'<mark class="rmark" style="background:'+escA(h.color)+'">'+esc(t.slice(s,e))+'</mark>';
+      pos=e;
+    });
+    out+=esc(t.slice(pos));
+    box.innerHTML=out;
+  }
+  function textOffset(container,node,offset){
+    var walker=document.createTreeWalker(container,NodeFilter.SHOW_TEXT,null),n,total=0;
+    while((n=walker.nextNode())){if(n===node)return total+offset;total+=n.nodeValue.length;}
+    return total;
+  }
+  function highlightSel(color){
+    var box=$('#rdText');if(!box||!curReadDoc)return false;
+    var sel=window.getSelection();
+    if(!sel||!sel.rangeCount||sel.isCollapsed)return false;
+    var r=sel.getRangeAt(0);
+    if(!box.contains(r.startContainer)||!box.contains(r.endContainer))return false;
+    var s=textOffset(box,r.startContainer,r.startOffset),e=textOffset(box,r.endContainer,r.endOffset);
+    if(e<s){var tmp=s;s=e;e=tmp;}
+    if(e<=s)return false;
+    var id=curReadDoc.id,arr=readPrefs.hl[id]||(readPrefs.hl[id]=[]);
+    if(color==='none'){readPrefs.hl[id]=arr.filter(function(h){return h.end<=s||h.start>=e;});}
+    else{
+      arr=readPrefs.hl[id]=arr.filter(function(h){return h.end<=s||h.start>=e;}); // replace overlaps
+      arr.push({start:s,end:e,color:color});
+    }
+    saveReadPrefs();sel.removeAllRanges();renderHl(id);return true;
+  }
+  document.querySelectorAll('#rdHl [data-hlc]').forEach(function(b){
+    b.addEventListener('mousedown',function(e){e.preventDefault();});
+    b.addEventListener('click',function(){
+      if(!highlightSel(b.getAttribute('data-hlc')))toast('Select some text in the book first, then tap a highlight colour.');
+    });
+  });
   function openReading(id){
     var d=readAll().filter(function(x){return x.id==id;})[0]||readAll()[0];if(!d)return;
     readPrefs.last=d.id;saveReadPrefs();
-    var doc=$('#rdDoc');
-    doc.innerHTML='<span class="rdtitle">'+esc(d.title)+'</span>'+(d.by?'<span class="rdby">'+esc(d.by)+'</span>':'')+esc(d.text);
-    doc.style.fontSize=readPrefs.size+'px';
-    $('#rdArea').setAttribute('data-rth',readPrefs.theme);$('#rdArea').scrollTop=0;
-    $('#rdLib').value=d.id;
-    document.querySelectorAll('#rdThemes [data-rth]').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-rth')===readPrefs.theme);});
+    paintDoc(d);
+    try{$('#rdLib').value=d.id;}catch(e){}
   }
   $('#rdLib').addEventListener('change',function(){openReading(this.value);});
   document.querySelectorAll('#rdThemes [data-rth]').forEach(function(b){b.onclick=function(){
@@ -2364,15 +2841,24 @@
   $('#rdPlus').onclick=function(){readPrefs.size=Math.min(30,readPrefs.size+1);saveReadPrefs();$('#rdDoc').style.fontSize=readPrefs.size+'px';};
   $('#rdMinus').onclick=function(){readPrefs.size=Math.max(13,readPrefs.size-1);saveReadPrefs();$('#rdDoc').style.fontSize=readPrefs.size+'px';};
   $('#rdImport').onclick=function(){$('#rdFile').click();};
-  $('#rdFile').addEventListener('change',async function(e){
-    var f=e.target.files&&e.target.files[0];if(!f)return;e.target.value='';
+  async function importFile(f){
     var ext=(f.name.split('.').pop()||'').toLowerCase(),name=f.name.replace(/\.[^.]+$/,'');
-    toast('Reading '+f.name+'…',true);
-    try{
-      var text;if(ext==='pdf')text=await extractPdf(await readBuf(f));else text=await readTxt(f);
-      if(!text){hideToast();toast('No readable text found — the file may be a scanned image.');return;}
-      var d={id:'u'+Date.now(),title:name,by:'Your upload',text:text};readingUser.unshift(d);saveReading();fillRdLib();openReading(d.id);hideToast();toast('Added “'+name+'”.');
-    }catch(err){hideToast();toast((err&&err.message)||'Couldn’t read that file.');}
+    if(ext==='epub')throw new Error('EPUB isn’t supported yet — export it to PDF or TXT first.');
+    var text=(ext==='pdf')?await extractPdf(await readBuf(f)):await readTxt(f);
+    if(!text)throw new Error('No readable text in “'+f.name+'” (a scanned image?).');
+    var d={id:'u'+Date.now()+'_'+Math.random().toString(36).slice(2,6),title:name,by:'Your upload',text:text};
+    readingUser.unshift(d);return d;
+  }
+  $('#rdFile').addEventListener('change',async function(e){
+    var files=Array.prototype.slice.call(e.target.files||[]);e.target.value='';if(!files.length)return;
+    toast('Importing '+files.length+' file'+(files.length>1?'s':'')+'…',true);
+    var ok=0,first=null,lastErr='';
+    for(var i=0;i<files.length;i++){try{var d=await importFile(files[i]);ok++;if(!first)first=d;}catch(err){lastErr=(err&&err.message)||'Couldn’t read a file.';}}
+    saveReading();fillRdLib();hideToast();
+    if(first)openReading(first.id);
+    if(ok)toast('Added '+ok+' book'+(ok>1?'s':'')+' to your library.'+(lastErr?' (some skipped)':''));
+    else toast(lastErr||'Couldn’t read those files.');
+    if($('#bkPanel').style.display!=='none'&&curSrc==='mylib')renderMyLib();
   });
   $('#rdPaste').onclick=function(){$('#pasteTitle').value='';$('#pasteText').value='';$('#pasteModal').classList.add('on');$('#pasteTitle').focus();};
   $('#pasteCancel').onclick=function(){$('#pasteModal').classList.remove('on');};
@@ -2405,7 +2891,220 @@
     lookupWord(w,rect);
   });
   document.addEventListener('click',function(e){var pop=$('#dictPop');if(pop&&pop.style.display==='block'&&!pop.contains(e.target)&&!(e.target.closest&&e.target.closest('#rdDoc')))pop.style.display='none';});
-  fillRdLib();openReading(readPrefs.last);
+  /* ---- book browser (Gutenberg · Open Library · offline) ---- */
+  var curSrc='gutenberg';
+  var GENRES={
+    gutenberg:['Law','Jurisprudence','Fiction','History','Philosophy','Poetry','Mystery','Adventure','Children','Short stories'],
+    openlib:['Law','Indian law','Fiction','History','Philosophy','Self-help','Biography','Science','Poetry','Business'],
+    mylib:[]
+  };
+  function closeBrowse(){var p=$('#bkPanel');if(p)p.style.display='none';var a=$('#rdArea');if(a)a.style.display='';}
+  function openBrowse(){
+    $('#bkPanel').style.display='';$('#rdArea').style.display='none';renderChips();
+    if(curSrc==='mylib')renderMyLib();
+    else if(!$('#bkResults').children.length)$('#bkResults').innerHTML='<div class="bkmsg">Type a title, author or subject and hit Search — or tap a subject below.</div>';
+    $('#bkQuery').focus();
+  }
+  $('#bkToggle').onclick=function(){ if($('#bkPanel').style.display==='none')openBrowse(); else closeBrowse(); };
+  $('#bkCloseBtn').onclick=closeBrowse;
+  document.querySelectorAll('#bkSrc [data-src]').forEach(function(b){b.onclick=function(){
+    document.querySelectorAll('#bkSrc [data-src]').forEach(function(x){x.classList.toggle('on',x===b);});
+    curSrc=b.getAttribute('data-src');renderChips();$('#bkResults').innerHTML='';
+    if(curSrc==='mylib')renderMyLib();
+  };});
+  function renderChips(){
+    var g=GENRES[curSrc]||[];
+    $('#bkChips').style.display=g.length?'':'none';
+    $('#bkChips').innerHTML=g.map(function(x){return '<button class="bkchip">'+esc(x)+'</button>';}).join('');
+    document.querySelectorAll('#bkChips .bkchip').forEach(function(c){c.onclick=function(){$('#bkQuery').value=c.textContent;bkSearch();};});
+  }
+  $('#bkSearch').onclick=bkSearch;
+  $('#bkQuery').addEventListener('keydown',function(e){if(e.key==='Enter')bkSearch();});
+  function bkSearch(){
+    if(curSrc==='mylib'){renderMyLib();return;}
+    var q=$('#bkQuery').value.trim();if(!q){toast('Type something to search for.');return;}
+    if(curSrc==='gutenberg')searchGutenberg(q);else searchOpenLib(q);
+  }
+  function coverPlaceholder(){return '<span class="bkcov"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 4h9l4 4v12H5z" stroke-linejoin="round"/><path d="M14 4v4h4"/></svg></span>';}
+  function gutenTxt(f){for(var k in f){if(k.indexOf('text/plain')===0&&!/\.zip$/i.test(f[k]))return f[k];}return '';}
+  function cleanGutenberg(t){
+    var s=(t||'').replace(/\r/g,'');
+    var m=s.match(/\*\*\*\s*START OF (THE|THIS) PROJECT GUTENBERG[^\n]*\*\*\*/i);if(m)s=s.slice(m.index+m[0].length);
+    var e=s.match(/\*\*\*\s*END OF (THE|THIS) PROJECT GUTENBERG/i);if(e)s=s.slice(0,e.index);
+    return s.trim();
+  }
+  async function searchGutenberg(q){
+    var box=$('#bkResults');box.innerHTML='<div class="bkbusy">Searching free books…</div>';
+    try{
+      var res=await fetch('https://gutendex.com/books/?search='+encodeURIComponent(q));if(!res.ok)throw 0;
+      var list=((await res.json()).results||[]).slice(0,24);
+      if(!list.length){box.innerHTML='<div class="bkmsg">No free books matched “'+esc(q)+'”. Try the Borrow / buy tab.</div>';return;}
+      box.innerHTML='';
+      list.forEach(function(bk){
+        var txt=gutenTxt(bk.formats||{}),cov=(bk.formats||{})['image/jpeg'];
+        var by=(bk.authors||[]).map(function(a){return a.name;}).join(', ')||'Unknown author';
+        var el=document.createElement('div');el.className='bkcard';
+        el.innerHTML=(cov?'<span class="bkcov" style="background-image:url('+escA(cov)+')"></span>':coverPlaceholder())
+          +'<span class="bktag">Free · read here</span><div class="bkt">'+esc(bk.title||'Untitled')+'</div><div class="bka">'+esc(by)+'</div><div class="bkacts"></div>';
+        var acts=el.querySelector('.bkacts');
+        if(txt){
+          var r=document.createElement('button');r.className='btn pri';r.textContent='Read';r.onclick=function(){gutenRead(bk,txt,false);};acts.appendChild(r);
+          var s=document.createElement('button');s.className='btn';s.textContent='Save';s.onclick=function(){gutenRead(bk,txt,true);};acts.appendChild(s);
+        }
+        var lk=document.createElement('a');lk.className='btn';lk.target='_blank';lk.rel='noopener';lk.href='https://www.gutenberg.org/ebooks/'+bk.id;lk.textContent='Gutenberg ↗';acts.appendChild(lk);
+        box.appendChild(el);
+      });
+    }catch(e){box.innerHTML='<div class="bkmsg">Couldn’t reach the free-books service — check your internet connection. (Opening the app from its website works best.)</div>';}
+  }
+  async function gutenRead(bk,url,save){
+    toast('Fetching “'+bk.title+'”…',true);
+    /* canonical cache URL first (proxy-friendly); the gutendex format URL is often a redirect that 404s via proxy */
+    var cands=['https://www.gutenberg.org/cache/epub/'+bk.id+'/pg'+bk.id+'.txt'];
+    if(url&&cands.indexOf(url)<0)cands.push(url);
+    try{
+      var text='';
+      for(var i=0;i<cands.length&&!text;i++){
+        var u=cands[i];
+        try{var r0=await fetch(u);if(r0.ok)text=await r0.text();}catch(e0){} /* direct works when opened from some origins */
+        if(!text){try{var r=await fetch('https://corsproxy.io/?url='+encodeURIComponent(u));if(r.ok)text=await r.text();}catch(e1){}} /* CORS bridge for gutenberg.org */
+        if(text&&text.charAt(0)==='<')text=''; /* got an HTML error page, not the book */
+      }
+      text=cleanGutenberg(text);if(!text)throw 0;hideToast();
+      var by=(bk.authors||[]).map(function(a){return a.name;}).join(', ')||'Project Gutenberg';
+      var d={id:'g'+bk.id,title:bk.title||'Untitled',by:by+' · public domain',text:text};
+      if(save){if(!readingUser.some(function(x){return x.id===d.id;})){readingUser.unshift(d);saveReading();fillRdLib();}toast('Saved “'+d.title+'” to your library.');}
+      readPrefs.last=d.id;saveReadPrefs();paintDoc(d);try{$('#rdLib').value=d.id;}catch(e){}
+    }catch(e){hideToast();toast('Couldn’t open it in-app — opening Gutenberg instead.');window.open('https://www.gutenberg.org/ebooks/'+bk.id,'_blank','noopener');}
+  }
+  async function searchOpenLib(q){
+    var box=$('#bkResults');box.innerHTML='<div class="bkbusy">Searching the catalogue…</div>';
+    try{
+      var res=await fetch('https://openlibrary.org/search.json?limit=24&fields=key,title,author_name,first_publish_year,cover_i,ia,ebook_access&q='+encodeURIComponent(q));if(!res.ok)throw 0;
+      var list=((await res.json()).docs||[]).slice(0,24);
+      if(!list.length){box.innerHTML='<div class="bkmsg">No books matched “'+esc(q)+'”.</div>';return;}
+      box.innerHTML='';
+      list.forEach(function(bk){
+        var by=(bk.author_name||[]).slice(0,2).join(', ')||'Unknown author';
+        var yr=bk.first_publish_year?(' · '+bk.first_publish_year):'';
+        var cov=bk.cover_i?('https://covers.openlibrary.org/b/id/'+bk.cover_i+'-M.jpg'):'';
+        var free=(bk.ebook_access==='public'||bk.ebook_access==='borrowable')&&bk.ia&&bk.ia.length;
+        var qterm=encodeURIComponent((bk.title||'')+' '+by);
+        var el=document.createElement('div');el.className='bkcard';
+        el.innerHTML=(cov?'<span class="bkcov" style="background-image:url('+escA(cov)+')"></span>':coverPlaceholder())
+          +'<span class="bktag'+(free?'':' paid')+'">'+(free?'Borrow free':'Buy / find')+'</span>'
+          +'<div class="bkt">'+esc(bk.title||'Untitled')+'</div><div class="bka">'+esc(by)+esc(yr)+'</div><div class="bkacts">'
+          +'<a class="btn'+(free?' pri':'')+'" target="_blank" rel="noopener" href="https://openlibrary.org'+escA(bk.key||'')+'">'+(free?'Borrow ↗':'Details ↗')+'</a>'
+          +'<a class="btn" target="_blank" rel="noopener" href="https://www.google.com/search?tbm=bks&q='+qterm+'">Google Books ↗</a>'
+          +'<a class="btn" target="_blank" rel="noopener" href="https://www.amazon.in/s?k='+qterm+'">Amazon ↗</a>'
+          +'</div>';
+        box.appendChild(el);
+      });
+    }catch(e){box.innerHTML='<div class="bkmsg">Couldn’t reach the catalogue — check your internet connection.</div>';}
+  }
+  function renderMyLib(){
+    var box=$('#bkResults');
+    var bar='<div class="bkmsg" style="padding:6px 0;text-align:left"><button class="btn" id="mlUpload">Upload files</button>'+(window.showDirectoryPicker?' <button class="btn" id="mlFolder">Import a folder</button>':'')+'</div>';
+    if(!readingUser.length){box.innerHTML=bar+'<div class="bkmsg">Your library is empty. Upload PDFs/TXTs, import a folder, or save free books from the other tabs.</div>';wireMyLibBtns();return;}
+    box.innerHTML=bar;
+    readingUser.forEach(function(d){
+      var el=document.createElement('div');el.className='bkcard';
+      el.innerHTML=coverPlaceholder()+'<span class="bktag">On this device</span><div class="bkt">'+esc(d.title)+'</div><div class="bka">'+esc(d.by||'Your upload')+'</div><div class="bkacts"></div>';
+      var acts=el.querySelector('.bkacts');
+      var o=document.createElement('button');o.className='btn pri';o.textContent='Open';o.onclick=function(){openReading(d.id);};acts.appendChild(o);
+      var rm=document.createElement('button');rm.className='btn';rm.textContent='Remove';rm.onclick=function(){if(!confirm('Remove “'+d.title+'” from your library?'))return;readingUser=readingUser.filter(function(x){return x.id!==d.id;});saveReading();fillRdLib();renderMyLib();};acts.appendChild(rm);
+      box.appendChild(el);
+    });
+    wireMyLibBtns();
+  }
+  function wireMyLibBtns(){
+    var u=$('#mlUpload');if(u)u.onclick=function(){$('#rdFile').click();};
+    var fo=$('#mlFolder');if(fo)fo.onclick=importFolder;
+  }
+  async function importFolder(){
+    if(!window.showDirectoryPicker)return;
+    var dir;try{dir=await window.showDirectoryPicker();}catch(e){return;}
+    toast('Reading folder…',true);var ok=0,first=null;
+    try{
+      for await(var entry of dir.values()){
+        if(entry.kind!=='file'||!/\.(txt|md|pdf)$/i.test(entry.name))continue;
+        try{var d=await importFile(await entry.getFile());ok++;if(!first)first=d;}catch(e){}
+      }
+    }catch(e){}
+    saveReading();fillRdLib();hideToast();
+    if(ok){toast('Imported '+ok+' book'+(ok>1?'s':'')+' from the folder.');renderMyLib();if(first)openReading(first.id);}
+    else toast('No .txt, .md or PDF files found in that folder.');
+  }
+
+  fillRdLib();
+  loadReadingLib().then(function(){fillRdLib();openReading(readPrefs.last);},function(){fillRdLib();openReading(readPrefs.last);});
+
+  /* ========== P — the companion ========== */
+  var Pal=window.Pal=(function(){
+    var el=$('#pal'), bubble=$('#palBubble'), peek=$('#palPeek'), dock=$('#palDock');
+    var on=LS.getItem('lex_companion'); on = on===null ? true : on==='on';
+    var big=LS.getItem('lex_pal_size')==='big';
+    var bubbleTimer=null, idleTimer=null, hideTimer=null;
+    // position the bubble to the RIGHT of P (P is docked on the left rail)
+    function placeBubble(){ var r=el.getBoundingClientRect();
+      bubble.style.right='auto'; bubble.style.bottom='auto';
+      bubble.style.left=(r.right+12)+'px';
+      var bh=bubble.offsetHeight||60, top=r.top-6;
+      if(top+bh>window.innerHeight-8)top=window.innerHeight-8-bh; if(top<8)top=8;
+      bubble.style.top=top+'px'; }
+    function applySize(){ el.classList.toggle('big',big);
+      var b=$('#palSize'); if(b){b.textContent=big?'⤡':'⤢'; b.title=big?'Shrink P':'Enlarge P';}
+      if(bubble.classList.contains('show'))placeBubble(); }
+    function firstName(){return (prof.name||'Anwesha').trim().split(/\s+/)[0]||'there';}
+    var lines=[
+      'Hi <b>'+firstName()+'</b> — it’s me, P 🐼',
+      'Just here to keep you company 💛',
+      'Do your thing — I’ll sit right here 🐾',
+      'You’re not alone, I’ve got you 🫂',
+      'Take your time, no rush at all',
+      'Proud of you — always',
+      'Glad I get to hang out with you ✨',
+      'Little stretch? I’ll wait',
+      'Sending you calm, cozy vibes',
+      'Missed you — good to see you 💛'
+    ];
+    var workLines=['I’ll just sit here while you work 🐾','Busy busy — I’m right here with you','No rush, take your time 💛','Keeping you company ✨'];
+    function pick(a){a=a||lines;return a[Math.floor(Math.random()*a.length)];}
+    function wave(){ if(root.getAttribute('data-anim')!=='on')return; el.classList.remove('wave'); void el.offsetWidth; el.classList.add('wave'); }
+    function hideBubble(){bubble.classList.remove('show');}
+    function say(html,ms){
+      if(!on)return;
+      bubble.innerHTML=html; bubble.classList.add('show'); placeBubble(); wave();
+      clearTimeout(bubbleTimer); bubbleTimer=setTimeout(hideBubble, ms||3600);
+    }
+    function scheduleIdle(){
+      clearTimeout(idleTimer);
+      idleTimer=setTimeout(function(){ if(on&&document.hasFocus&&document.hasFocus())say(pick()); scheduleIdle(); }, 55000+Math.random()*25000);
+    }
+    function show(){ on=true; LS.setItem('lex_companion','on'); clearTimeout(hideTimer); peek.classList.remove('on'); dock.style.display=''; applySize();
+      void el.offsetWidth; /* force reflow so the fade-in transition plays (rAF is unreliable in background tabs) */
+      el.classList.add('here'); setTimeout(function(){say(lines[0],4200);},600); scheduleIdle(); }
+    function hide(){ on=false; LS.setItem('lex_companion','off'); el.classList.remove('here'); hideBubble(); clearTimeout(idleTimer);
+      clearTimeout(hideTimer); hideTimer=setTimeout(function(){dock.style.display='none';peek.classList.add('on');},450); }
+    window.addEventListener('resize',function(){ if(bubble.classList.contains('show'))placeBubble(); });
+    // enlarge / shrink toggle (does not trigger the click-to-cheer)
+    $('#palSize').onclick=function(e){ e.stopPropagation(); big=!big; LS.setItem('lex_pal_size',big?'big':''); applySize(); };
+    // click P → cheer + wave; right-click → tuck away into the rail
+    el.onclick=function(){ say(pick(), 3200); };
+    el.oncontextmenu=function(e){ e.preventDefault(); hide(); };
+    peek.onclick=show;
+    // react (occasionally) while she types notes
+    var lastWork=0;
+    document.addEventListener('input',function(e){
+      if(!on)return; var t=e.target;
+      if(t&&(t.id==='ebody'||t.id==='etitle'||(t.closest&&t.closest('.view.on')))){
+        var now=Date.now(); if(now-lastWork>45000){lastWork=now; if(Math.random()<0.5)say(pick(workLines),2600);}
+      }
+    },true);
+    // boot
+    applySize();
+    if(on){ setTimeout(show,400); } else { dock.style.display='none'; peek.classList.add('on'); }
+    return {say:say,pick:pick,hideBubble:hideBubble,wave:wave,show:show,hide:hide};
+  })();
 
   /* init */
   refreshKeydot();renderAll();renderExHome();initResume();
