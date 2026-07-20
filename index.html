@@ -512,6 +512,12 @@
   .rdhl .hlswatch{width:18px;height:18px;border-radius:5px;border:1px solid rgba(0,0,0,.2);cursor:pointer;padding:0}
   .rdhl .hlswatch:hover{transform:scale(1.12);box-shadow:0 0 0 2px var(--accent-line)}
   .rdhl .hlswatch.erase{background:var(--surface);display:inline-flex;align-items:center;justify-content:center;font-size:12px;color:var(--muted);border-color:var(--line)}
+  /* data / backup modal */
+  .databox{display:flex;flex-direction:column;gap:10px;margin:6px 0 4px}
+  .datarow{display:flex;align-items:center;justify-content:space-between;gap:14px;border:1px solid var(--line);border-radius:10px;padding:12px 14px;background:var(--surface-2)}
+  .datat{font-size:13.5px;font-weight:600;color:var(--ink)}
+  .datas{font-size:12px;color:var(--muted);margin-top:2px}
+  .datarow .btn{flex-shrink:0}
   .readarea[data-rth="paper"] .readdoc{color:#2a2620}
   .readarea[data-rth="sepia"] .readdoc{color:#4a3a24}
   .readarea[data-rth="night"] .readdoc{color:#cdd0da}
@@ -727,6 +733,7 @@
       <button class="tbtn" id="keyBtn"><span class="keydot" id="keydot"></span>Gemini key</button>
       <button class="tbtn sq" id="animBtn" title="Animations on / off"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3l1.9 4.5L18 9l-4.1 1.5L12 15l-1.9-4.5L6 9l4.1-1.5zM18 14l.9 2.2L21 17l-2.1.8L18 20l-.9-2.2L15 17l2.1-.8zM6 15l.7 1.6L8 17l-1.3.4L6 19l-.7-1.6L4 17l1.3-.4z" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
       <button class="tbtn sq" id="themeBtn" title="Light / dark"><svg id="themeIco" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 13A9 9 0 1 1 11 3a7 7 0 0 0 10 10z" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <button class="tbtn sq" id="dataBtn" title="Back up or restore your data"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><ellipse cx="12" cy="6" rx="7" ry="3"/><path d="M5 6v12c0 1.7 3.1 3 7 3s7-1.3 7-3V6M5 12c0 1.7 3.1 3 7 3s7-1.3 7-3" stroke-linecap="round"/></svg></button>
       <button class="tbtn sq" id="fsBtn" title="Fullscreen"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
     </div>
 
@@ -1265,6 +1272,35 @@
   </div>
 </div>
 
+<!-- DATA / BACKUP MODAL -->
+<div class="modal" id="dataModal">
+  <div class="sheet">
+    <h3>Back up &amp; restore</h3>
+    <p>Your notes, flashcards, papers, reading library and settings live only in this browser on this device. Download a backup to keep a copy on your PC — then you can restore it here or on another device (phone, another laptop).</p>
+    <div class="databox">
+      <div class="datarow">
+        <div>
+          <div class="datat">Download a backup</div>
+          <div class="datas">Saves everything to a <b>lex-backup</b> file on your PC.</div>
+        </div>
+        <button class="btn pri" id="dataExport">Download</button>
+      </div>
+      <div class="datarow">
+        <div>
+          <div class="datat">Restore from a backup</div>
+          <div class="datas">Pick a <b>lex-backup</b> file — it replaces the data on this device.</div>
+        </div>
+        <button class="btn" id="dataImport">Restore…</button>
+        <input type="file" id="dataFile" accept="application/json,.json" style="display:none">
+      </div>
+    </div>
+    <div class="hint">Tip: keep the backup in Google Drive / email it to yourself, and restore it on your other devices. Automatic cloud sync across devices is coming next.</div>
+    <div class="actions">
+      <button class="btn" id="dataClose">Close</button>
+    </div>
+  </div>
+</div>
+
 <!-- ATS MODAL -->
 <div class="modal" id="atsModal">
   <div class="sheet wide">
@@ -1611,6 +1647,44 @@
       notes.unshift(n);curId=n.id;save();renderAll();
       toast('Imported “'+name+'” · '+text.length.toLocaleString()+' characters');
     }catch(err){toast((err&&err.message)||'Couldn’t import that file.');}
+  });
+
+  /* ========== DATA BACKUP / RESTORE ========== */
+  $('#dataBtn').onclick=function(){$('#dataModal').classList.add('on');};
+  $('#dataClose').onclick=function(){$('#dataModal').classList.remove('on');};
+  $('#dataModal').addEventListener('click',function(e){if(e.target===$('#dataModal'))$('#dataModal').classList.remove('on');});
+  async function exportData(){
+    var out={_lex:'lex-backup',_v:1,ts:Date.now(),ls:{},reading:null};
+    for(var i=0;i<LS.length;i++){var k=LS.key(i);if(k&&k.indexOf('lex_')===0)out.ls[k]=LS.getItem(k);}
+    /* reading library lives in IndexedDB — pull it in too */
+    try{if(typeof useIDB!=='undefined'&&useIDB){var r=await idbGet('lex_reading');if(r)out.reading=r;}}catch(e){}
+    var stamp=new Date().toISOString().slice(0,10);
+    var blob=new Blob([JSON.stringify(out)],{type:'application/json'});
+    var a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='lex-backup-'+stamp+'.json';
+    document.body.appendChild(a);a.click();a.remove();setTimeout(function(){URL.revokeObjectURL(a.href);},1000);
+    toast('Backup downloaded. Keep it safe on your PC or Drive.');
+  }
+  $('#dataExport').onclick=function(){exportData();};
+  $('#dataImport').onclick=function(){$('#dataFile').click();};
+  $('#dataFile').addEventListener('change',async function(e){
+    var f=e.target.files&&e.target.files[0];if(!f)return;e.target.value='';
+    var data;
+    try{data=JSON.parse(await f.text());}catch(err){toast('That file isn’t a valid Lex backup.');return;}
+    if(!data||data._lex!=='lex-backup'||!data.ls){toast('That file isn’t a Lex backup.');return;}
+    var n=Object.keys(data.ls).length;
+    if(!confirm('Restore this backup?\n\nIt will REPLACE the notes, flashcards and settings currently on this device with the ones in the file ('+n+' items). This cannot be undone.'))return;
+    try{
+      /* clear existing lex_ keys first so removed items don't linger */
+      var kill=[];for(var i=0;i<LS.length;i++){var k=LS.key(i);if(k&&k.indexOf('lex_')===0)kill.push(k);}
+      kill.forEach(function(k){LS.removeItem(k);});
+      Object.keys(data.ls).forEach(function(k){LS.setItem(k,data.ls[k]);});
+      if(data.reading&&typeof useIDB!=='undefined'){
+        if(useIDB){await idbPut('lex_reading',data.reading);}
+        else{try{LS.setItem('lex_reading',JSON.stringify(data.reading));}catch(e){}}
+      }
+      toast('Backup restored. Reloading…');
+      setTimeout(function(){location.reload();},700);
+    }catch(err){toast('Couldn’t restore that backup.');}
   });
 
   /* ========== GEMINI ========== */
