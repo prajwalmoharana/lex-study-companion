@@ -4,6 +4,12 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Lex — study companion</title>
+<meta name="theme-color" content="#8C2F43">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Lex">
 <style>
   :root{
     --bg:#ECE9E2; --surface:#FCFBF8; --surface-2:#F4F2EB; --surface-3:#ECE9E0;
@@ -1339,6 +1345,13 @@
         <button class="btn" id="syncNow" style="display:none">Sync now</button>
         <button class="btn" id="syncOut" style="display:none">Sign out</button>
       </div>
+    </div>
+    <div class="datarow" id="installRow" style="display:none">
+      <div>
+        <div class="datat">Install Lex as an app</div>
+        <div class="datas">Add it to your home screen / desktop — opens full-screen and works offline.</div>
+      </div>
+      <button class="btn pri" id="installBtn">Install</button>
     </div>
     <div class="datadiv"><span>or manual backup</span></div>
     <div class="databox">
@@ -3365,6 +3378,14 @@
       'Missed you — good to see you 💛'
     ];
     var workLines=['I’ll just sit here while you work 🐾','Busy busy — I’m right here with you','No rush, take your time 💛','Keeping you company ✨'];
+    var breakLines=[
+      'You’ve been at it a while — maybe a little water break? 💧',
+      '15 minutes strong 💪 stretch those shoulders?',
+      'Deep breath, <b>'+firstName()+'</b> — you’re doing great ✨',
+      'Long focus streak! Rest your eyes for a moment 👀',
+      'Still going 👏 remember to blink and breathe 🐾'
+    ];
+    var backLines=['Welcome back 💛','There you are — missed you 🐾','Ready when you are ✨','Back to it — I’m right here'];
     function pick(a){a=a||lines;return a[Math.floor(Math.random()*a.length)];}
     function wave(){ if(root.getAttribute('data-anim')!=='on')return; el.classList.remove('wave'); void el.offsetWidth; el.classList.add('wave'); }
     function hideBubble(){bubble.classList.remove('show');}
@@ -3388,7 +3409,27 @@
     // click P → cheer + wave; right-click → tuck away into the rail
     el.onclick=function(){ say(pick(), 3200); };
     el.oncontextmenu=function(e){ e.preventDefault(); hide(); };
-    peek.onclick=show;
+    peek.onclick=function(){ if(awayHidden)comeBack(); else show(); };
+
+    /* ---- activity awareness: rest while you work, step away when you're away ---- */
+    var awayHidden=false, lastAct=Date.now(), workStart=Date.now(), lastNag=0;
+    var IDLE_MS=4*60*1000;   /* no activity for 4 min → P quietly steps away */
+    var WORK_MS=16*60*1000;  /* ~15-20 min of steady work → a gentle nudge */
+    /* visually tuck away without changing the on/off preference */
+    function tuckAway(){ if(!on||awayHidden)return; awayHidden=true; el.classList.remove('here'); hideBubble(); clearTimeout(idleTimer);
+      clearTimeout(hideTimer); hideTimer=setTimeout(function(){dock.style.display='none';peek.classList.add('on');},450); }
+    function comeBack(){ if(!awayHidden)return; awayHidden=false; workStart=Date.now(); lastNag=0;
+      clearTimeout(hideTimer); peek.classList.remove('on'); dock.style.display=''; applySize();
+      void el.offsetWidth; el.classList.add('here'); setTimeout(function(){say(pick(backLines),3600);},400); scheduleIdle(); }
+    function activity(){ lastAct=Date.now(); if(awayHidden)comeBack(); }
+    ['mousemove','mousedown','keydown','touchstart','scroll'].forEach(function(ev){document.addEventListener(ev,activity,{passive:true,capture:true});});
+    setInterval(function(){
+      if(!on)return; var now=Date.now();
+      if(!awayHidden && now-lastAct>IDLE_MS){ tuckAway(); return; }
+      if(!awayHidden && now-workStart>WORK_MS && now-lastNag>WORK_MS && document.hasFocus && document.hasFocus()){
+        lastNag=now; say(pick(breakLines),5200);
+      }
+    },20000);
     // react (occasionally) while she types notes
     var lastWork=0;
     document.addEventListener('input',function(e){
@@ -3402,6 +3443,23 @@
     if(on){ setTimeout(show,400); } else { dock.style.display='none'; peek.classList.add('on'); }
     return {say:say,pick:pick,hideBubble:hideBubble,wave:wave,show:show,hide:hide};
   })();
+
+  /* ---------- PWA: installable + offline ---------- */
+  if('serviceWorker' in navigator && location.protocol.indexOf('http')===0){
+    window.addEventListener('load',function(){navigator.serviceWorker.register('sw.js').catch(function(){});});
+  }
+  var deferredPrompt=null;
+  window.addEventListener('beforeinstallprompt',function(e){
+    e.preventDefault();deferredPrompt=e;
+    var row=$('#installRow');if(row)row.style.display='';
+  });
+  var ib=$('#installBtn');
+  if(ib)ib.onclick=async function(){
+    if(!deferredPrompt){toast('Use your browser menu → “Install app / Add to Home screen”.');return;}
+    deferredPrompt.prompt();try{await deferredPrompt.userChoice;}catch(e){}
+    deferredPrompt=null;$('#installRow').style.display='none';
+  };
+  window.addEventListener('appinstalled',function(){deferredPrompt=null;var r=$('#installRow');if(r)r.style.display='none';toast('Lex installed 🎉');});
 
   /* init */
   refreshKeydot();renderAll();renderExHome();initResume();
