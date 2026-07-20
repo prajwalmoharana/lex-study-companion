@@ -187,6 +187,11 @@
 
   /* ---- EXAM / UGC-NET ---- */
   .exwrap{flex:1;overflow:auto;padding:26px 30px;width:100%}
+  .exsubtabs{display:flex;gap:4px;flex-wrap:wrap;margin-bottom:22px;border-bottom:1px solid var(--line);padding-bottom:2px}
+  .exsub{border:none;background:none;padding:9px 15px;font-size:13px;color:var(--ink-soft);cursor:pointer;border-radius:8px 8px 0 0;position:relative;font-weight:500}
+  .exsub:hover{color:var(--accent-ink);background:var(--accent-bg)}
+  .exsub.on{color:var(--accent-ink);font-weight:600}
+  .exsub.on:after{content:"";position:absolute;left:10px;right:10px;bottom:-3px;height:2.5px;border-radius:2px;background:var(--accent)}
   .expane{max-width:940px;margin:0 auto}
   .exeyebrow{font-size:11.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--brass);font-weight:600;margin:0 0 8px}
   .exh1{font-family:var(--font-serif);font-size:27px;font-weight:600;margin:0 0 4px}
@@ -535,6 +540,8 @@
   .pdfloading{text-align:center;color:var(--muted);padding:48px 16px;font-size:14px}
   .readarea[data-rth="sepia"] .pdfpage{filter:sepia(.35) contrast(.98)}
   .readarea[data-rth="night"] .pdfpage{filter:invert(1) hue-rotate(180deg)}
+  .btn.backmode{background:var(--surface-2);color:var(--accent-ink);border-color:var(--accent-line)}
+  .btn.backmode:hover{background:var(--accent-bg)}
   .rdhl{display:inline-flex;align-items:center;gap:5px}
   .rdhl .rdhl-lbl{font-size:11px;color:var(--muted);margin-right:1px}
   .rdhl .hlswatch{width:18px;height:18px;border-radius:5px;border:1px solid rgba(0,0,0,.2);cursor:pointer;padding:0}
@@ -695,7 +702,7 @@
       <button data-v="notes" class="on"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M5 3h10l4 4v14H5zM15 3v4h4M8 12h8M8 16h5" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Notes</button>
       <button data-v="kb"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 5a2 2 0 0 1 2-2h5v16H6a2 2 0 0 0-2 2zM20 5a2 2 0 0 0-2-2h-5v16h5a2 2 0 0 1 2 2z" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Knowledge base</button>
       <button data-v="cards"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 7h11v13H4zM8 4h12v13" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Flashcards</button>
-      <button data-v="exam"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.4"/></svg></span>UGC-NET prep</button>
+      <button data-v="exam"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="3.4"/></svg></span>Exam prep</button>
       <button data-v="bank"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M6 4h9l3 3v13H6zM9 12h6M9 16h6" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Question bank</button>
       <button data-v="present"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 4h18v12H3zM12 16v4M8 20h8" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Presentations</button>
       <button data-v="read"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 6c-2-1.4-5-1.4-8-1v13c3-.4 6-.4 8 1 2-1.4 5-1.4 8-1V5c-3-.4-6-.4-8 1zM12 6v13" stroke-linecap="round" stroke-linejoin="round"/></svg></span>Reading corner</button>
@@ -987,6 +994,12 @@
 
     <section class="view" data-view="exam">
       <div class="exwrap">
+        <div class="exsubtabs" id="examTabs">
+          <button class="exsub on" data-exam="ugcnet">UGC-NET Law</button>
+          <button class="exsub" data-exam="phd">Ph.D. Entrance</button>
+          <button class="exsub" data-exam="judiciary">Judiciary</button>
+          <button class="exsub" data-exam="govt">Govt Legal Exams</button>
+        </div>
         <!-- HOME -->
         <div class="expane" id="exHome">
           <p class="exeyebrow">Academic career track</p>
@@ -1014,6 +1027,18 @@
               <div id="exHistory"><div class="exempty">No attempts yet.</div></div>
             </div>
           </div>
+        </div>
+        <!-- OTHER EXAM TRACKS (Ph.D. / Judiciary / Govt) -->
+        <div class="expane" id="examOther" style="display:none">
+          <p class="exeyebrow" id="eoEyebrow">Exam track</p>
+          <h1 class="exh1" id="eoTitle">Ph.D. Entrance</h1>
+          <p class="exlead" id="eoLead"></p>
+          <div class="exgrid3">
+            <button class="exact" id="eoPractice"><span class="ei"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M13 4l2 5 5 2-5 2-2 5-2-5-5-2 5-2z" stroke-linejoin="round"/></svg></span><span><span class="eh">Practice a topic</span><span class="ed">Gemini makes fresh questions</span></span></button>
+            <button class="exact" id="eoPyq"><span class="ei"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M12 15V4M8 8l4-4 4 4M5 20h14" stroke-linecap="round" stroke-linejoin="round"/></svg></span><span><span class="eh">From past papers</span><span class="ed">Paste papers →­ similar Qs</span></span></button>
+            <button class="exact" id="eoQuick"><span class="ei"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"><path d="M7 5l12 7-12 7z" stroke-linejoin="round"/></svg></span><span><span class="eh">Quick mock</span><span class="ed">10 sample Qs · no key needed</span></span></button>
+          </div>
+          <div class="excard"><div class="exempty" id="eoNote" style="text-align:left;padding:14px 4px"></div></div>
         </div>
         <!-- TEST -->
         <div class="expane" id="exTest" style="display:none">
@@ -1181,7 +1206,7 @@
                 <button class="seg-b" data-src="mylib" title="Books you've uploaded to this device">My library</button>
               </div>
               <button class="btn pri" id="bkSearch">Search</button>
-              <button class="btn bkclose" id="bkCloseBtn">Close</button>
+              <button class="btn bkclose" id="bkCloseBtn">← Back to reading</button>
             </div>
             <div class="bkchips" id="bkChips"></div>
             <div class="bkresults" id="bkResults"></div>
@@ -1467,7 +1492,7 @@
   });
 
   /* ---------- nav ---------- */
-  var crumbs={notes:'Notes',kb:'Knowledge base',cards:'Flashcards',exam:'UGC-NET prep',bank:'Question bank',present:'Presentations',read:'Reading corner',resume:'Resume builder',space:'My space'};
+  var crumbs={notes:'Notes',kb:'Knowledge base',cards:'Flashcards',exam:'Exam prep',bank:'Question bank',present:'Presentations',read:'Reading corner',resume:'Resume builder',space:'My space'};
   document.querySelectorAll('#nav button').forEach(function(b){b.onclick=function(){
     var v=b.getAttribute('data-v');
     document.querySelectorAll('#nav button').forEach(function(x){x.classList.toggle('on',x===b)});
@@ -2107,10 +2132,12 @@
     if(cfg.mode==='sample'){return SAMPLE.slice();}
     var key=getKey(); if(!key){throw {nokey:true};}
     var prompt;
+    var ex=EXAMS[curExam]||EXAMS.ugcnet;
+    var frame=ex.frame+(curExam==='ugcnet'&&cfg.paper?' '+cfg.paper:'');
     if(cfg.mode==='pyq'){
-      prompt='Below are previous-year UGC-NET questions.\n"""\n'+cfg.pyq+'\n"""\nStudy their style, difficulty and topics. Write '+cfg.count+' NEW, original multiple-choice questions in the same spirit (do NOT copy them). ';
+      prompt='Below are previous-year questions from '+ex.name+'.\n"""\n'+cfg.pyq+'\n"""\nStudy their style, difficulty and topics. Write '+cfg.count+' NEW, original multiple-choice questions in the same spirit for '+frame+' (do NOT copy them). ';
     }else{
-      prompt='Write '+cfg.count+' original multiple-choice questions for UGC-NET '+cfg.paper+' on the topic "'+cfg.topic+'" in the Indian legal context, at '+cfg.diff+' difficulty. ';
+      prompt='Write '+cfg.count+' original multiple-choice questions for '+frame+' on the topic "'+cfg.topic+'" in the Indian legal context, at '+cfg.diff+' difficulty. ';
     }
     prompt+='Each must have exactly 4 options and one correct answer. Return ONLY a valid JSON array, no prose, no markdown fences. Each element: {"q":"question text","options":["A","B","C","D"],"answer":0,"explanation":"one-line reason","topic":"short topic name"}. "answer" is the 0-based index of the correct option. Do not invent fake case names or citations.';
     var data=await geminiFetch({contents:[{role:'user',parts:[{text:prompt}]}],generationConfig:{temperature:0.6,responseMimeType:'application/json'}});
@@ -2131,6 +2158,33 @@
       return {q:String(o.q||o.question||''),options:opts,answer:a,explanation:String(o.explanation||o.explain||''),topic:String(o.topic||'General')};
     }).filter(function(q){return q.q&&q.options.length>=2;});
   }
+
+  /* ----- exam tracks (UGC-NET + siblings) ----- */
+  var EXAMS={
+    ugcnet:{name:'UGC-NET Law',frame:'the UGC-NET Law examination (Paper 2)'},
+    phd:{name:'Ph.D. (Law) Entrance',eyebrow:'Research career track',frame:'a Ph.D. in Law entrance test — research methodology, jurisprudence and legal subject knowledge',
+      lead:'Prepare for university Ph.D. / JRF entrances in law — research aptitude and your specialised subject.',
+      note:'Best used with your own university’s past papers. Tap <b>From past papers</b> to paste them, or <b>Practice a topic</b> for research methodology, jurisprudence or your subject area.'},
+    judiciary:{name:'Judicial Services',eyebrow:'Litigation career track',frame:'a State Judicial Services (Civil Judge, Junior Division) preliminary examination in India',
+      lead:'Practise for State Judiciary (Civil Judge) prelims — the bare acts and landmark law.',
+      note:'Covers CPC, CrPC/BNSS, IPC/BNS, Evidence, Contract and the Constitution. Tap <b>Practice a topic</b> (e.g. “order 7 CPC”, “anticipatory bail”) or paste a state PYQ paper.'},
+    govt:{name:'Govt Legal Exams',eyebrow:'Government career track',frame:'Indian government legal-officer recruitment exams (Assistant Prosecution Officer, Law Officer, PSU legal)',
+      lead:'Practise for legal-officer & prosecutor recruitment (APO, Law Officer, PSU legal).',
+      note:'Tap <b>Practice a topic</b> for the relevant acts, or <b>From past papers</b> to paste the specific exam’s previous papers so Gemini matches its style.'}
+  };
+  var curExam='ugcnet';
+  function selectExam(x){
+    curExam=x;
+    document.querySelectorAll('#examTabs .exsub').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-exam')===x);});
+    if(x==='ugcnet'){renderExHome();showExPane('exHome');return;}
+    var ex=EXAMS[x];
+    $('#eoEyebrow').textContent=ex.eyebrow;$('#eoTitle').textContent=ex.name;$('#eoLead').textContent=ex.lead;$('#eoNote').innerHTML=ex.note;
+    showExPane('examOther');
+  }
+  document.querySelectorAll('#examTabs .exsub').forEach(function(b){b.onclick=function(){selectExam(b.getAttribute('data-exam'));};});
+  $('#eoPractice').onclick=function(){openSetup('topic');};
+  $('#eoPyq').onclick=function(){openSetup('pyq');};
+  $('#eoQuick').onclick=function(){startTest(pickSample(10),EXAMS[curExam].name+' · quick mock');};
 
   /* ----- setup modal ----- */
   var exCfg={mode:'topic'};
@@ -2185,10 +2239,11 @@
 
   /* ----- test engine ----- */
   var E=null, exTimer=null;
-  function showExPane(id){['exHome','exTest','exResult'].forEach(function(x){$('#'+x).style.display=x===id?'block':'none';});$('.exwrap').scrollTop=0;}
+  function showExPane(id){['exHome','examOther','exTest','exResult'].forEach(function(x){$('#'+x).style.display=x===id?'block':'none';});$('#examTabs').style.display=(id==='exHome'||id==='examOther')?'':'none';$('.exwrap').scrollTop=0;}
+  function examHome(){showExPane(curExam==='ugcnet'?'exHome':'examOther');}
   function startTest(qs,label){
     E={qs:qs,ans:qs.map(function(){return null;}),marked:{},i:0,label:label,left:qs.length*60};
-    $('#exTestLabel').textContent=label;$('#exTestSub').textContent='UGC-NET · '+qs.length+' questions';
+    $('#exTestLabel').textContent=label;$('#exTestSub').textContent=(EXAMS[curExam]||EXAMS.ugcnet).name+' · '+qs.length+' questions';
     showExPane('exTest');renderQ();renderGrid();
     clearInterval(exTimer);tick();exTimer=setInterval(tick,1000);
   }
@@ -2230,7 +2285,7 @@
   $('#exPrev').onclick=function(){if(E.i>0){E.i--;renderQ();renderGrid();}};
   $('#exNext').onclick=function(){if(E.i<E.qs.length-1){E.i++;renderQ();renderGrid();}};
   $('#exMark').onclick=function(){E.marked[E.i]=!E.marked[E.i];renderQ();renderGrid();};
-  $('#exExit').onclick=function(){if(confirm('Leave this test? Your progress will be lost.')){clearInterval(exTimer);E=null;showExPane('exHome');}};
+  $('#exExit').onclick=function(){if(confirm('Leave this test? Your progress will be lost.')){clearInterval(exTimer);E=null;examHome();}};
   $('#exSubmit').onclick=function(){var un=E.ans.filter(function(a){return a===null;}).length;if(un&&!confirm(un+' question(s) not answered. Submit anyway?'))return;grade();};
 
   function grade(){
@@ -2268,7 +2323,7 @@
     });
     showExPane('exResult');
   }
-  $('#exBack').onclick=function(){E=null;renderExHome();showExPane('exHome');};
+  $('#exBack').onclick=function(){E=null;renderExHome();examHome();};
 
   /* init */
   /* ========== RESUME BUILDER ========== */
@@ -3265,9 +3320,12 @@
     openlib:['Law','Indian law','Fiction','History','Philosophy','Self-help','Biography','Science','Poetry','Business'],
     mylib:[]
   };
-  function closeBrowse(){var p=$('#bkPanel');if(p)p.style.display='none';var a=$('#rdArea');if(a)a.style.display='';}
+  var BK_FIND='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" style="width:15px;height:15px"><circle cx="11" cy="11" r="7"/><path d="M20 20l-3.2-3.2" stroke-linecap="round"/></svg>Find books';
+  var BK_BACK='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" style="width:15px;height:15px"><path d="M15 5l-7 7 7 7" stroke-linecap="round" stroke-linejoin="round"/></svg>Back to reading';
+  function closeBrowse(){var p=$('#bkPanel');if(p)p.style.display='none';var a=$('#rdArea');if(a)a.style.display='';var t=$('#bkToggle');if(t){t.innerHTML=BK_FIND;t.classList.remove('backmode');t.title='Find free & paid books online, or open your library';}}
   function openBrowse(){
     $('#bkPanel').style.display='';$('#rdArea').style.display='none';renderChips();
+    var t=$('#bkToggle');if(t){t.innerHTML=BK_BACK;t.classList.add('backmode');t.title='Return to what you were reading';}
     if(curSrc==='mylib')renderMyLib();
     else if(!$('#bkResults').children.length)$('#bkResults').innerHTML='<div class="bkmsg">Type a title, author or subject and hit Search — or tap a subject below.</div>';
     $('#bkQuery').focus();
