@@ -687,6 +687,22 @@
   :root[data-anim="on"] .modal.open .sheet,
   :root[data-anim="on"] .prstage.open .slide{animation:lexPop .3s cubic-bezier(.22,.61,.36,1)}
   :root[data-anim="on"] #toast.show{animation:lexFloatIn .32s cubic-bezier(.22,.61,.36,1)}
+  /* command-palette: box pop + a quick staggered reveal of the results */
+  :root[data-anim="on"] .cmdk.on .cmdk-item{animation:lexFadeUp .24s ease backwards}
+  :root[data-anim="on"] .cmdk.on .cmdk-list>*:nth-child(1){animation-delay:.02s}
+  :root[data-anim="on"] .cmdk.on .cmdk-list>*:nth-child(2){animation-delay:.04s}
+  :root[data-anim="on"] .cmdk.on .cmdk-list>*:nth-child(3){animation-delay:.06s}
+  :root[data-anim="on"] .cmdk.on .cmdk-list>*:nth-child(4){animation-delay:.08s}
+  :root[data-anim="on"] .cmdk.on .cmdk-list>*:nth-child(5){animation-delay:.10s}
+  :root[data-anim="on"] .cmdk.on .cmdk-list>*:nth-child(6){animation-delay:.12s}
+  :root[data-anim="on"] .cmdk.on .cmdk-list>*:nth-child(7){animation-delay:.14s}
+  :root[data-anim="on"] .cmdk.on .cmdk-list>*:nth-child(n+8){animation-delay:.16s}
+  :root[data-anim="on"] .cmdk-item{transition:background .14s ease}
+  /* focus mode: the centered page eases in */
+  :root[data-anim="on"] body.focus .ehead,:root[data-anim="on"] body.focus .ebody{animation:lexFadeUp .32s cubic-bezier(.22,.61,.36,1)}
+  :root[data-anim="on"] .focushint{animation:lexFloatIn .34s ease}
+  /* smooth cross-fade of colours while switching theme or accent (class added briefly by JS) */
+  body.theming *{transition:background-color .34s ease,border-color .34s ease,color .34s ease,fill .34s ease,stroke .34s ease !important}
   /* NB: the OS "reduce motion" preference only decides the DEFAULT (see JS); once the
      user toggles animations on, their choice wins — so nothing is forced off here. */
 
@@ -715,6 +731,19 @@
   #pal .dot{fill:var(--good)}
   #pal:hover #palBob{animation-play-state:paused}
   #pal:active{transform:scale(.95)}
+  /* backing disc: invisible in light, a soft warm "spotlight" in dark so P never looks hollow/scary */
+  #palPlate{transition:fill .3s ease,stroke .3s ease}
+  :root[data-theme="dark"] #pal{--pal-plate:#EFECE4;--pal-plate-ring:#CFCABF}
+  @media (prefers-color-scheme:dark){:root:not([data-theme="light"]) #pal{--pal-plate:#EFECE4;--pal-plate-ring:#CFCABF}}
+  /* gentle blink of the "online" dot */
+  :root[data-anim="on"] #pal.here .dot{animation:palDot 2.6s ease-in-out infinite}
+  @keyframes palDot{0%,100%{opacity:1}50%{opacity:.4}}
+  /* playful head wiggle on hover (replaces the plain pause when motion is on) */
+  :root[data-anim="on"] #pal:hover #palBob{animation:palWiggle .9s ease-in-out infinite}
+  @keyframes palWiggle{0%,100%{transform:rotate(0)}25%{transform:rotate(3deg)}75%{transform:rotate(-3deg)}}
+  /* occasional little hop (triggered from JS) */
+  :root[data-anim="on"] #pal.hop #palBob{animation:palHop .62s ease}
+  @keyframes palHop{0%{transform:translateY(0)}28%{transform:translateY(-8px)}52%{transform:translateY(0)}70%{transform:translateY(-3px)}100%{transform:translateY(0)}}
   .paltag{font-size:10px;color:var(--muted);letter-spacing:.02em;font-weight:500;text-align:center}
   .paltag b{color:var(--accent-ink)}
   /* enlarge / shrink toggle */
@@ -768,6 +797,8 @@
       <button class="palsize" id="palSize" title="Enlarge P">⤢</button>
       <div id="pal" role="button" title="Hi, I'm P — click me!" aria-label="P, your panda companion">
         <svg viewBox="0 0 100 100">
+          <!-- soft backing disc — keeps P's black silhouette readable on the dark UI (transparent in light) -->
+          <ellipse id="palPlate" cx="50" cy="51" rx="47" ry="47" fill="var(--pal-plate,transparent)" stroke="var(--pal-plate-ring,transparent)" stroke-width="1.4"/>
           <!-- presence ring (online glow) -->
           <ellipse id="palRing" cx="50" cy="52" rx="36" ry="36" fill="none" stroke="var(--accent)" stroke-width="2.2"/>
           <g id="palBob">
@@ -1546,7 +1577,12 @@
   /* ---------- theme ---------- */
   var savedTheme=LS.getItem('lex_theme')||'light';
   root.setAttribute('data-theme',savedTheme);
-  $('#themeBtn').onclick=function(){var n=root.getAttribute('data-theme')==='dark'?'light':'dark';root.setAttribute('data-theme',n);LS.setItem('lex_theme',n);};
+  /* briefly enable colour transitions so theme / accent changes cross-fade (only when motion is on) */
+  var _crossT;
+  function crossfade(){ if(root.getAttribute('data-anim')!=='on')return;
+    document.body.classList.add('theming'); clearTimeout(_crossT);
+    _crossT=setTimeout(function(){document.body.classList.remove('theming');},420); }
+  $('#themeBtn').onclick=function(){crossfade();var n=root.getAttribute('data-theme')==='dark'?'light':'dark';root.setAttribute('data-theme',n);LS.setItem('lex_theme',n);};
 
   /* ---------- animations toggle ---------- */
   var reduce=window.matchMedia&&window.matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -1599,7 +1635,7 @@
     css+=':root[data-accent="'+id+'"]{--accent:'+v.l[0]+';--accent-ink:'+v.l[1]+';--accent-bg:'+v.l[2]+';--accent-line:'+v.l[3]+'}';
     css+=':root[data-theme="dark"][data-accent="'+id+'"]{--accent:'+v.d[0]+';--accent-ink:'+v.d[1]+';--accent-bg:'+v.d[2]+';--accent-line:'+v.d[3]+'}';});
     var st=document.createElement('style');st.textContent=css;document.head.appendChild(st);})();
-  function setAccent(id){ if(id&&id!=='garnet'&&ACCENT_VARS[id]){root.setAttribute('data-accent',id);}else{root.removeAttribute('data-accent');id='garnet';} LS.setItem('lex_accent',id); }
+  function setAccent(id){ crossfade(); if(id&&id!=='garnet'&&ACCENT_VARS[id]){root.setAttribute('data-accent',id);}else{root.removeAttribute('data-accent');id='garnet';} LS.setItem('lex_accent',id); }
   setAccent(LS.getItem('lex_accent')||'garnet');
 
   /* ---------- focus / zen mode ---------- */
@@ -3757,7 +3793,7 @@
     var el=$('#pal'), bubble=$('#palBubble'), peek=$('#palPeek'), dock=$('#palDock');
     var on=LS.getItem('lex_companion'); on = on===null ? true : on==='on';
     var big=LS.getItem('lex_pal_size')==='big';
-    var bubbleTimer=null, idleTimer=null, hideTimer=null;
+    var bubbleTimer=null, idleTimer=null, hideTimer=null, hopTimer=null;
     // position the bubble to the RIGHT of P (P is docked on the left rail)
     function placeBubble(){ var r=el.getBoundingClientRect();
       bubble.style.right='auto'; bubble.style.bottom='auto';
@@ -3792,6 +3828,10 @@
     var backLines=['Welcome back 💛','There you are — missed you 🐾','Ready when you are ✨','Back to it — I’m right here'];
     function pick(a){a=a||lines;return a[Math.floor(Math.random()*a.length)];}
     function wave(){ if(root.getAttribute('data-anim')!=='on')return; el.classList.remove('wave'); void el.offsetWidth; el.classList.add('wave'); }
+    function hop(){ if(root.getAttribute('data-anim')!=='on'||!on)return; el.classList.remove('hop'); void el.offsetWidth; el.classList.add('hop'); setTimeout(function(){el.classList.remove('hop');},680); }
+    function scheduleHop(){ clearTimeout(hopTimer); hopTimer=setTimeout(function(){
+      if(on&&!awayHidden&&document.hasFocus&&document.hasFocus()&&Math.random()<0.7)hop(); scheduleHop();
+    }, 15000+Math.random()*13000); }
     function hideBubble(){bubble.classList.remove('show');}
     function say(html,ms){
       if(!on)return;
@@ -3804,14 +3844,14 @@
     }
     function show(){ on=true; LS.setItem('lex_companion','on'); clearTimeout(hideTimer); peek.classList.remove('on'); dock.style.display=''; applySize();
       void el.offsetWidth; /* force reflow so the fade-in transition plays (rAF is unreliable in background tabs) */
-      el.classList.add('here'); setTimeout(function(){say(lines[0],4200);},600); scheduleIdle(); }
+      el.classList.add('here'); setTimeout(function(){say(lines[0],4200);},600); scheduleIdle(); scheduleHop(); }
     function hide(){ on=false; LS.setItem('lex_companion','off'); el.classList.remove('here'); hideBubble(); clearTimeout(idleTimer);
       clearTimeout(hideTimer); hideTimer=setTimeout(function(){dock.style.display='none';peek.classList.add('on');},450); }
     window.addEventListener('resize',function(){ if(bubble.classList.contains('show'))placeBubble(); });
     // enlarge / shrink toggle (does not trigger the click-to-cheer)
     $('#palSize').onclick=function(e){ e.stopPropagation(); big=!big; LS.setItem('lex_pal_size',big?'big':''); applySize(); };
     // click P → cheer + wave; right-click → tuck away into the rail
-    el.onclick=function(){ say(pick(), 3200); };
+    el.onclick=function(){ say(pick(), 3200); hop(); };
     el.oncontextmenu=function(e){ e.preventDefault(); hide(); };
     peek.onclick=function(){ if(awayHidden)comeBack(); else show(); };
 
