@@ -534,6 +534,16 @@
   .datat{font-size:13.5px;font-weight:600;color:var(--ink)}
   .datas{font-size:12px;color:var(--muted);margin-top:2px}
   .datarow .btn{flex-shrink:0}
+  .synccard{border:1px solid var(--accent-line);border-radius:12px;padding:14px;background:var(--accent-bg);display:flex;flex-direction:column;gap:12px;margin:6px 0 10px}
+  .syncmain{display:flex;align-items:center;gap:12px}
+  .syncicon{width:38px;height:38px;flex-shrink:0;border-radius:10px;background:var(--surface);display:flex;align-items:center;justify-content:center;font-size:20px;color:var(--accent-ink)}
+  .synct{font-size:14px;font-weight:600;color:var(--ink)}
+  .syncs{font-size:12px;color:var(--ink-soft);margin-top:2px;line-height:1.4}
+  .syncbtns{display:flex;gap:8px;flex-wrap:wrap}
+  .synccard.on{border-color:var(--line)}
+  .synccard.on .syncicon{color:#2e9e5b}
+  .datadiv{display:flex;align-items:center;gap:10px;color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.06em;margin:2px 0 8px}
+  .datadiv:before,.datadiv:after{content:"";flex:1;height:1px;background:var(--line)}
   .readarea[data-rth="paper"] .readdoc{color:#2a2620}
   .readarea[data-rth="sepia"] .readdoc{color:#4a3a24}
   .readarea[data-rth="night"] .readdoc{color:#cdd0da}
@@ -1297,8 +1307,23 @@
 <!-- DATA / BACKUP MODAL -->
 <div class="modal" id="dataModal">
   <div class="sheet">
-    <h3>Back up &amp; restore</h3>
-    <p>Your notes, flashcards, papers, reading library and settings live only in this browser on this device. Download a backup to keep a copy on your PC — then you can restore it here or on another device (phone, another laptop).</p>
+    <h3>Sync &amp; backup</h3>
+    <p>Sign in to sync your notes, flashcards, papers and settings across all your devices automatically — or download a one-off backup file to keep on your PC.</p>
+    <div class="synccard" id="syncCard">
+      <div class="syncmain">
+        <div class="syncicon" id="syncIcon">☁</div>
+        <div class="syncinfo">
+          <div class="synct" id="syncTitle">Cloud sync</div>
+          <div class="syncs" id="syncStatus">Sign in with Google to keep every device up to date.</div>
+        </div>
+      </div>
+      <div class="syncbtns">
+        <button class="btn pri" id="syncSignIn">Sign in with Google</button>
+        <button class="btn" id="syncNow" style="display:none">Sync now</button>
+        <button class="btn" id="syncOut" style="display:none">Sign out</button>
+      </div>
+    </div>
+    <div class="datadiv"><span>or manual backup</span></div>
     <div class="databox">
       <div class="datarow">
         <div>
@@ -1734,6 +1759,126 @@
       setTimeout(function(){location.reload();},700);
     }catch(err){toast('Couldn’t restore that backup.');}
   });
+
+  /* ========== CLOUD SYNC (Firebase) ========== */
+  var FB_CONFIG={
+    apiKey:"AIzaSyAMA7rL8EttAgbI9FUR76m4PaGuoxHzZwQ",
+    authDomain:"lex-study.firebaseapp.com",
+    projectId:"lex-study",
+    storageBucket:"lex-study.firebasestorage.app",
+    messagingSenderId:"188541885688",
+    appId:"1:188541885688:web:7b0a935acd72f47ea86f0d"
+  };
+  var FB_VER='10.12.2', fb=null, fbUser=null, fbUnsub=null, syncTimer=null, lastSig='', applyingRemote=false;
+  var localRev=+(LS.getItem('lex_cloud_rev')||0);
+  var SKIP_KEYS={lex_cloud_rev:1,lex_signed:1}; /* bookkeeping — never synced */
+
+  async function fbInit(){
+    if(fb)return fb;
+    await loadScript('https://www.gstatic.com/firebasejs/'+FB_VER+'/firebase-app-compat.js');
+    await Promise.all([
+      loadScript('https://www.gstatic.com/firebasejs/'+FB_VER+'/firebase-auth-compat.js'),
+      loadScript('https://www.gstatic.com/firebasejs/'+FB_VER+'/firebase-firestore-compat.js')
+    ]);
+    if(!window.firebase.apps.length)window.firebase.initializeApp(FB_CONFIG);
+    fb={auth:window.firebase.auth(),db:window.firebase.firestore()};
+    fb.auth.onAuthStateChanged(onAuth);
+    return fb;
+  }
+  function collectLocal(){var d={};for(var i=0;i<LS.length;i++){var k=LS.key(i);if(k&&k.indexOf('lex_')===0&&!SKIP_KEYS[k])d[k]=LS.getItem(k);}return d;}
+  /* is this a brand-new install (at most the default Welcome note, nothing else)? */
+  function isFresh(d){
+    var big=['lex_cards','lex_bank','lex_present','lex_space','lex_resume','lex_stickies','lex_kb_saved','lex_ex_hist'];
+    for(var i=0;i<big.length;i++){var v=d[big[i]];if(v){try{var p=JSON.parse(v);if(Array.isArray(p)?p.length:(p&&Object.keys(p).length))return false;}catch(e){}}}
+    var nv=d['lex_notes'];if(nv){try{var ns=JSON.parse(nv);if(ns.length>1)return false;if(ns.length===1&&ns[0].title!=='Welcome')return false;}catch(e){return false;}}
+    return true;
+  }
+  function applyCloud(data){
+    applyingRemote=true;
+    var kill=[];for(var i=0;i<LS.length;i++){var k=LS.key(i);if(k&&k.indexOf('lex_')===0&&!SKIP_KEYS[k])kill.push(k);}
+    kill.forEach(function(k){LS.removeItem(k);});
+    Object.keys(data).forEach(function(k){LS.setItem(k,data[k]);});
+  }
+  function reloadSoon(){setTimeout(function(){location.reload();},800);}
+  function setSyncStatus(t){var e=$('#syncStatus');if(e)e.textContent=t;}
+  async function pushCloud(){
+    if(!fbUser||!fb)return;
+    var data=collectLocal(),rev=Date.now();
+    try{
+      await fb.db.collection('users').doc(fbUser.uid).set({data:data,rev:rev,updatedAt:rev,device:(navigator.platform||'device')});
+      localRev=rev;LS.setItem('lex_cloud_rev',String(rev));lastSig=JSON.stringify(data);
+      setSyncStatus('All changes synced · '+new Date().toLocaleTimeString());
+    }catch(e){setSyncStatus('Couldn’t sync: '+((e&&(e.code||e.message))||'error')+(String(e).indexOf('permission')>=0?' (check Firestore rules)':''));}
+  }
+  function docRef(){return fb.db.collection('users').doc(fbUser.uid);}
+  async function reconcile(){
+    setSyncStatus('Checking your cloud data…');
+    var snap;try{snap=await docRef().get();}catch(e){setSyncStatus('Couldn’t reach the cloud: '+((e&&(e.code||e.message))||'error'));return;}
+    var local=collectLocal();
+    if(!snap.exists){await pushCloud();}
+    else{
+      var c=snap.data()||{},cdata=c.data||{},crev=c.rev||0;
+      var same=JSON.stringify(cdata)===JSON.stringify(local);
+      if(same){localRev=crev;LS.setItem('lex_cloud_rev',String(crev));lastSig=JSON.stringify(local);setSyncStatus('Up to date.');}
+      else if(isFresh(cdata)){await pushCloud();}
+      else if(isFresh(local)){applyCloud(cdata);localRev=crev;LS.setItem('lex_cloud_rev',String(crev));toast('Loaded your synced data.');reloadSoon();return;}
+      else{
+        var useCloud=confirm('This device and your cloud account both have data, and they differ.\n\nOK = use the CLOUD copy (from your other device) and replace what’s here.\nCancel = upload THIS device’s data to the cloud instead.');
+        if(useCloud){applyCloud(cdata);localRev=crev;LS.setItem('lex_cloud_rev',String(crev));toast('Loaded your synced data.');reloadSoon();return;}
+        await pushCloud();
+      }
+    }
+    startAutoSync();startLive();
+  }
+  function startAutoSync(){stopAutoSync();lastSig=JSON.stringify(collectLocal());syncTimer=setInterval(function(){if(!fbUser||applyingRemote)return;var s=JSON.stringify(collectLocal());if(s!==lastSig){lastSig=s;pushCloud();}},4000);}
+  function stopAutoSync(){if(syncTimer){clearInterval(syncTimer);syncTimer=null;}}
+  function startLive(){
+    if(fbUnsub){fbUnsub();fbUnsub=null;}
+    fbUnsub=docRef().onSnapshot(function(doc){
+      if(!doc.exists)return;var c=doc.data()||{};if(!c.rev||c.rev<=localRev)return;
+      var cdata=c.data||{};localRev=c.rev;LS.setItem('lex_cloud_rev',String(localRev));
+      if(JSON.stringify(cdata)===JSON.stringify(collectLocal()))return;
+      setSyncStatus('Newer data arrived from another device — tap “Sync now” to load it.');
+      toast('Newer notes synced from another device — open Sync & backup → Sync now to load them.');
+    },function(){});
+  }
+  function setSignedIn(user){
+    $('#syncCard').classList.add('on');$('#syncIcon').textContent='✓';
+    $('#syncTitle').textContent='Synced'+(user.displayName?' · '+user.displayName:'');
+    $('#syncSignIn').style.display='none';$('#syncNow').style.display='';$('#syncOut').style.display='';
+  }
+  function setSignedOut(){
+    $('#syncCard').classList.remove('on');$('#syncIcon').textContent='☁';
+    $('#syncTitle').textContent='Cloud sync';setSyncStatus('Sign in with Google to keep every device up to date.');
+    $('#syncSignIn').style.display='';$('#syncNow').style.display='none';$('#syncOut').style.display='none';
+  }
+  function onAuth(user){
+    fbUser=user;
+    if(user){LS.setItem('lex_signed','1');setSignedIn(user);reconcile();}
+    else{LS.removeItem('lex_signed');setSignedOut();if(fbUnsub){fbUnsub();fbUnsub=null;}stopAutoSync();}
+  }
+  $('#syncSignIn').onclick=async function(){
+    setSyncStatus('Connecting to Google…');
+    try{await fbInit();}catch(e){setSyncStatus('Couldn’t load sync (offline?).');return;}
+    try{await fb.auth.signInWithPopup(new window.firebase.auth.GoogleAuthProvider());}
+    catch(e){
+      var c=e&&e.code;
+      if(c==='auth/popup-blocked'||c==='auth/cancelled-popup-request'||c==='auth/popup-closed-by-user'){
+        LS.setItem('lex_signed','1');try{await fb.auth.signInWithRedirect(new window.firebase.auth.GoogleAuthProvider());}catch(e2){setSyncStatus('Sign-in failed: '+((e2&&(e2.code||e2.message))||'error'));}
+      }else{setSyncStatus('Sign-in failed: '+((c||e.message)||'error'));}
+    }
+  };
+  $('#syncNow').onclick=async function(){
+    if(!fbUser)return;setSyncStatus('Syncing…');
+    var snap;try{snap=await docRef().get();}catch(e){setSyncStatus('Couldn’t reach the cloud.');return;}
+    var cloud=snap.exists?(snap.data()||{}):{},cdata=cloud.data||{},crev=cloud.rev||0,local=collectLocal();
+    if(snap.exists&&crev>localRev&&JSON.stringify(cdata)!==JSON.stringify(local)){
+      applyCloud(cdata);localRev=crev;LS.setItem('lex_cloud_rev',String(crev));toast('Pulled the latest from the cloud.');reloadSoon();
+    }else{await pushCloud();toast('Synced.');}
+  };
+  $('#syncOut').onclick=async function(){try{if(fb)await fb.auth.signOut();}catch(e){}LS.removeItem('lex_signed');setSignedOut();};
+  /* returning signed-in users (or a redirect coming back) resume sync automatically */
+  if(LS.getItem('lex_signed'))fbInit().catch(function(){});
 
   /* ========== GEMINI ========== */
   function getKey(){return LS.getItem('lex_key')||'';}
