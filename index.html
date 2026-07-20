@@ -529,6 +529,12 @@
   .readarea[data-rth="night"]{background:#14151b}
   .readdoc{max-width:720px;margin:0 auto;font-family:var(--font-serif);line-height:1.8;white-space:pre-wrap;word-wrap:break-word}
   .rdtext mark.rmark{color:#1a1a1a;padding:0 1px;border-radius:2px}
+  .readdoc.pdf{max-width:none;font-family:inherit}
+  .pdfpages{display:flex;flex-direction:column;align-items:center;gap:16px;padding:6px 0 24px}
+  .pdfpage{max-width:100%;height:auto;border-radius:4px;box-shadow:0 3px 16px rgba(0,0,0,.16);background:#fff}
+  .pdfloading{text-align:center;color:var(--muted);padding:48px 16px;font-size:14px}
+  .readarea[data-rth="sepia"] .pdfpage{filter:sepia(.35) contrast(.98)}
+  .readarea[data-rth="night"] .pdfpage{filter:invert(1) hue-rotate(180deg)}
   .rdhl{display:inline-flex;align-items:center;gap:5px}
   .rdhl .rdhl-lbl{font-size:11px;color:var(--muted);margin-right:1px}
   .rdhl .hlswatch{width:18px;height:18px;border-radius:5px;border:1px solid rgba(0,0,0,.2);cursor:pointer;padding:0}
@@ -3066,6 +3072,7 @@
   function idbOpen(){return new Promise(function(res,rej){var r=indexedDB.open('lexReading',1);r.onupgradeneeded=function(){r.result.createObjectStore('kv');};r.onsuccess=function(){res(r.result);};r.onerror=function(){rej(r.error);};});}
   function idbGet(k){return idbOpen().then(function(db){return new Promise(function(res,rej){var t=db.transaction('kv','readonly').objectStore('kv').get(k);t.onsuccess=function(){res(t.result);};t.onerror=function(){rej(t.error);};});});}
   function idbPut(k,v){return idbOpen().then(function(db){return new Promise(function(res,rej){var t=db.transaction('kv','readwrite').objectStore('kv').put(v,k);t.onsuccess=function(){res();};t.onerror=function(){rej(t.error);};});});}
+  function idbDel(k){return idbOpen().then(function(db){return new Promise(function(res){var t=db.transaction('kv','readwrite').objectStore('kv').delete(k);t.onsuccess=function(){res();};t.onerror=function(){res();};});}).catch(function(){});}
   function saveReading(){
     if(useIDB){idbPut('lex_reading',readingUser).catch(function(){try{LS.setItem('lex_reading',JSON.stringify(readingUser));}catch(e){toast('Storage is full — remove a book to add more.');}});}
     else{try{LS.setItem('lex_reading',JSON.stringify(readingUser));}catch(e){toast('This book is too large for offline storage on this browser.');}}
@@ -3085,14 +3092,49 @@
     $('#rdLib').innerHTML=READ_BUILTIN.map(function(d){return '<option value="'+d.id+'">'+esc(d.title)+'</option>';}).join('')
       +(readingUser.length?('<optgroup label="Your library">'+readingUser.map(function(d){return '<option value="'+escA(d.id)+'">'+esc(d.title)+'</option>';}).join('')+'</optgroup>'):'');
   }
+  var pdfScale=+(readPrefs.pdfScale||1.3), curPdf=null;
   function paintDoc(d){
-    var doc=$('#rdDoc');curReadDoc=d;
-    doc.innerHTML='<span class="rdtitle">'+esc(d.title)+'</span>'+(d.by?'<span class="rdby">'+esc(d.by)+'</span>':'')+'<span class="rdtext" id="rdText"></span>';
-    renderHl(d.id);
-    doc.style.fontSize=readPrefs.size+'px';
+    var doc=$('#rdDoc');curReadDoc=d;curPdf=null;
     $('#rdArea').setAttribute('data-rth',readPrefs.theme);$('#rdArea').scrollTop=0;
     document.querySelectorAll('#rdThemes [data-rth]').forEach(function(x){x.classList.toggle('on',x.getAttribute('data-rth')===readPrefs.theme);});
+    var hl=$('#rdHl');
+    if(d.type==='pdf'){
+      doc.classList.add('pdf');if(hl)hl.style.display='none';
+      renderPdf(d);
+    }else{
+      doc.classList.remove('pdf');if(hl)hl.style.display='';
+      doc.innerHTML='<span class="rdtitle">'+esc(d.title)+'</span>'+(d.by?'<span class="rdby">'+esc(d.by)+'</span>':'')+'<span class="rdtext" id="rdText"></span>';
+      renderHl(d.id);
+      doc.style.fontSize=readPrefs.size+'px';
+    }
     closeBrowse();
+  }
+  /* ---- in-app PDF viewer (renders real pages, keeps formatting) ---- */
+  async function renderPdf(d){
+    var doc=$('#rdDoc');doc.innerHTML='<div class="pdfloading">Opening “'+esc(d.title)+'”…</div>';
+    var buf=null;try{if(useIDB)buf=await idbGet('lexpdf_'+d.id);}catch(e){}
+    if(!buf){
+      if(d.text){doc.classList.remove('pdf');var hl=$('#rdHl');if(hl)hl.style.display='';doc.innerHTML='<span class="rdtitle">'+esc(d.title)+'</span><span class="rdtext" id="rdText"></span>';renderHl(d.id);doc.style.fontSize=readPrefs.size+'px';return;}
+      doc.innerHTML='<div class="pdfloading">This PDF’s file isn’t on this device (it doesn’t sync). Re-upload it here to read it.</div>';return;
+    }
+    try{
+      await loadScript(PDF_JS);window.pdfjsLib.GlobalWorkerOptions.workerSrc=PDF_WORKER;
+      curPdf=await window.pdfjsLib.getDocument({data:buf}).promise;
+      if(curReadDoc!==d)return; /* user switched away while loading */
+      await paintPdfPages();
+    }catch(e){doc.innerHTML='<div class="pdfloading">Couldn’t open this PDF — '+esc((e&&e.message)||'unknown error')+'.</div>';}
+  }
+  async function paintPdfPages(){
+    if(!curPdf)return;var doc=$('#rdDoc');doc.innerHTML='';
+    var wrap=document.createElement('div');wrap.className='pdfpages';doc.appendChild(wrap);
+    var dpr=Math.min(window.devicePixelRatio||1,2);
+    for(var p=1;p<=curPdf.numPages;p++){
+      var page=await curPdf.getPage(p);
+      var vp=page.getViewport({scale:pdfScale*dpr});
+      var cv=document.createElement('canvas');cv.className='pdfpage';cv.width=vp.width;cv.height=vp.height;cv.style.width=(vp.width/dpr)+'px';
+      wrap.appendChild(cv);
+      try{await page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;}catch(e){}
+    }
   }
   /* ---- reading highlighter (saved as character ranges per book) ---- */
   function renderHl(id){
@@ -3148,16 +3190,31 @@
     document.querySelectorAll('#rdThemes [data-rth]').forEach(function(x){x.classList.toggle('on',x===b);});
     readPrefs.theme=b.getAttribute('data-rth');saveReadPrefs();$('#rdArea').setAttribute('data-rth',readPrefs.theme);
   };});
-  $('#rdPlus').onclick=function(){readPrefs.size=Math.min(30,readPrefs.size+1);saveReadPrefs();$('#rdDoc').style.fontSize=readPrefs.size+'px';};
-  $('#rdMinus').onclick=function(){readPrefs.size=Math.max(13,readPrefs.size-1);saveReadPrefs();$('#rdDoc').style.fontSize=readPrefs.size+'px';};
+  $('#rdPlus').onclick=function(){
+    if(curReadDoc&&curReadDoc.type==='pdf'){pdfScale=Math.min(3,pdfScale+0.15);readPrefs.pdfScale=pdfScale;saveReadPrefs();paintPdfPages();return;}
+    readPrefs.size=Math.min(30,readPrefs.size+1);saveReadPrefs();$('#rdDoc').style.fontSize=readPrefs.size+'px';};
+  $('#rdMinus').onclick=function(){
+    if(curReadDoc&&curReadDoc.type==='pdf'){pdfScale=Math.max(0.6,pdfScale-0.15);readPrefs.pdfScale=pdfScale;saveReadPrefs();paintPdfPages();return;}
+    readPrefs.size=Math.max(13,readPrefs.size-1);saveReadPrefs();$('#rdDoc').style.fontSize=readPrefs.size+'px';};
   $('#rdImport').onclick=function(){$('#rdFile').click();};
   async function importFile(f){
     var ext=(f.name.split('.').pop()||'').toLowerCase(),name=f.name.replace(/\.[^.]+$/,'');
     if(ext==='epub')throw new Error('EPUB isn’t supported yet — export it to PDF or TXT first.');
-    var text=(ext==='pdf')?await extractPdf(await readBuf(f)):await readTxt(f);
+    var id='u'+Date.now()+'_'+Math.random().toString(36).slice(2,6);
+    if(ext==='pdf'){
+      var buf=await readBuf(f);
+      if(useIDB){
+        try{await idbPut('lexpdf_'+id,buf);var d={id:id,title:name,by:'Your upload',type:'pdf'};readingUser.unshift(d);return d;}
+        catch(e){/* fall through to text if the file couldn't be stored */}
+      }
+      var t=await extractPdf(buf);
+      var dt={id:id,title:name,by:'Your upload',text:t||'(No selectable text — this looks like a scanned PDF.)'};
+      readingUser.unshift(dt);return dt;
+    }
+    var text=await readTxt(f);
     if(!text)throw new Error('No readable text in “'+f.name+'” (a scanned image?).');
-    var d={id:'u'+Date.now()+'_'+Math.random().toString(36).slice(2,6),title:name,by:'Your upload',text:text};
-    readingUser.unshift(d);return d;
+    var d2={id:id,title:name,by:'Your upload',text:text};
+    readingUser.unshift(d2);return d2;
   }
   $('#rdFile').addEventListener('change',async function(e){
     var files=Array.prototype.slice.call(e.target.files||[]);e.target.value='';if(!files.length)return;
@@ -3321,7 +3378,7 @@
       el.innerHTML=coverPlaceholder()+'<span class="bktag">On this device</span><div class="bkt">'+esc(d.title)+'</div><div class="bka">'+esc(d.by||'Your upload')+'</div><div class="bkacts"></div>';
       var acts=el.querySelector('.bkacts');
       var o=document.createElement('button');o.className='btn pri';o.textContent='Open';o.onclick=function(){openReading(d.id);};acts.appendChild(o);
-      var rm=document.createElement('button');rm.className='btn';rm.textContent='Remove';rm.onclick=function(){if(!confirm('Remove “'+d.title+'” from your library?'))return;readingUser=readingUser.filter(function(x){return x.id!==d.id;});saveReading();fillRdLib();renderMyLib();};acts.appendChild(rm);
+      var rm=document.createElement('button');rm.className='btn';rm.textContent='Remove';rm.onclick=function(){if(!confirm('Remove “'+d.title+'” from your library?'))return;if(d.type==='pdf'&&useIDB)idbDel('lexpdf_'+d.id);readingUser=readingUser.filter(function(x){return x.id!==d.id;});saveReading();fillRdLib();renderMyLib();};acts.appendChild(rm);
       box.appendChild(el);
     });
     wireMyLibBtns();
