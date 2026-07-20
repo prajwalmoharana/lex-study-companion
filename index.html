@@ -528,7 +528,20 @@
   .readwrap{flex:1;min-height:0;display:flex;flex-direction:column}
   .readbar{display:flex;align-items:center;gap:8px;padding:10px 16px;border-bottom:1px solid var(--line);background:var(--surface);flex-wrap:wrap}
   .readbar .spacer{flex:1}
-  .readarea{flex:1;min-height:0;overflow:auto;padding:34px 20px 80px}
+  .readarea{flex:1;min-height:0;overflow:auto;padding:34px 20px 80px;position:relative}
+  /* book-like paged mode */
+  .readarea.paged{overflow:hidden;padding:28px 0}
+  .readarea.paged .readdoc{max-width:none;margin:0;column-fill:auto;transition:translate .28s ease}
+  .readarea.paged .readdoc.pdf{column-width:auto!important}
+  .pageturn{display:none;position:absolute;top:50%;transform:translateY(-50%);width:42px;height:64px;border:1px solid var(--line);background:var(--surface);color:var(--ink-soft);border-radius:12px;font-size:26px;line-height:1;cursor:pointer;z-index:4;box-shadow:0 2px 10px rgba(0,0,0,.1);opacity:.85}
+  .pageturn:hover{opacity:1;color:var(--accent-ink);border-color:var(--accent-line)}
+  .pageturn.left{left:10px}.pageturn.right{right:10px}
+  .readarea.paged .pageturn{display:flex;align-items:center;justify-content:center}
+  .rdpager{display:none;align-items:center;justify-content:center;gap:18px;padding:8px 16px;border-top:1px solid var(--line);background:var(--surface);flex-shrink:0}
+  .rdpager .rdpg{border:1px solid var(--line);background:var(--surface-2);color:var(--ink-soft);border-radius:8px;padding:6px 14px;font-size:12.5px;cursor:pointer}
+  .rdpager .rdpg:hover{border-color:var(--accent-line);color:var(--accent-ink);background:var(--accent-bg)}
+  .rdpager .rdpginfo{font-size:12px;color:var(--muted);min-width:110px;text-align:center}
+  #rdBookmark.on{color:var(--accent-ink);background:var(--accent-bg);border-color:var(--accent-line)}
   .readarea[data-rth="paper"]{background:#f7f4ec}
   .readarea[data-rth="sepia"]{background:#f2e5cf}
   .readarea[data-rth="night"]{background:#14151b}
@@ -1186,6 +1199,11 @@
           </div>
           <button class="tbtn sq" id="rdMinus" title="Smaller text">A−</button>
           <button class="tbtn sq" id="rdPlus" title="Larger text">A+</button>
+          <div class="seg" id="rdMode" title="Turn pages like a book, or scroll continuously">
+            <button class="seg-b on" data-mode="page">Pages</button>
+            <button class="seg-b" data-mode="scroll">Scroll</button>
+          </div>
+          <button class="tbtn sq" id="rdBookmark" title="Bookmark where you are — reopen the book to jump back">🔖</button>
           <div class="rdhl" id="rdHl" title="Select text in the book, then tap a colour to highlight">
             <span class="rdhl-lbl">Highlight</span>
             <button class="hlswatch" data-hlc="#FDE68A" style="background:#FDE68A" title="Yellow"></button>
@@ -1214,6 +1232,13 @@
         </div>
         <div class="readarea" id="rdArea">
           <div class="readdoc" id="rdDoc"></div>
+          <button class="pageturn left" id="rdPrev" title="Previous page" aria-label="Previous page">‹</button>
+          <button class="pageturn right" id="rdNext" title="Next page" aria-label="Next page">›</button>
+        </div>
+        <div class="rdpager" id="rdPager" style="display:none">
+          <button class="rdpg" id="rdPrev2">‹ Previous</button>
+          <span class="rdpginfo" id="rdPageInfo">Page 1 of 1</span>
+          <button class="rdpg" id="rdNext2">Next ›</button>
         </div>
       </div>
       <div class="dictpop" id="dictPop" style="display:none"></div>
@@ -1498,6 +1523,7 @@
     document.querySelectorAll('#nav button').forEach(function(x){x.classList.toggle('on',x===b)});
     document.querySelectorAll('.view').forEach(function(s){s.classList.toggle('on',s.getAttribute('data-view')===v)});
     $('#crumb').textContent=crumbs[v];
+    if(v==='read')setTimeout(function(){layoutPages();},30); /* measure once the view is visible */
   };});
 
   /* ========== NOTES ========== */
@@ -3121,7 +3147,10 @@
   var readPrefs=JSON.parse(LS.getItem('lex_read_prefs')||'{}');
   if(!readPrefs.theme)readPrefs.theme='paper';if(!readPrefs.size)readPrefs.size=18;if(!readPrefs.last)readPrefs.last='b_preamble';
   if(!readPrefs.hl)readPrefs.hl={};
+  if(!readPrefs.bm)readPrefs.bm={};
+  if(!readPrefs.mode)readPrefs.mode='page';
   var curReadDoc=null;
+  var pageIdx=0, pageCount=1, pageStride=0, pendingJump=null;
   /* personal library lives in IndexedDB (much bigger than localStorage's ~5MB), with a localStorage fallback */
   var useIDB=(function(){try{return 'indexedDB' in window && !!window.indexedDB;}catch(e){return false;}})();
   function idbOpen(){return new Promise(function(res,rej){var r=indexedDB.open('lexReading',1);r.onupgradeneeded=function(){r.result.createObjectStore('kv');};r.onsuccess=function(){res(r.result);};r.onerror=function(){rej(r.error);};});}
@@ -3161,9 +3190,92 @@
       doc.innerHTML='<span class="rdtitle">'+esc(d.title)+'</span>'+(d.by?'<span class="rdby">'+esc(d.by)+'</span>':'')+'<span class="rdtext" id="rdText"></span>';
       renderHl(d.id);
       doc.style.fontSize=readPrefs.size+'px';
+      layoutPages();
     }
     closeBrowse();
   }
+  /* ---- book-like pagination ---- */
+  function pageableCanvases(){return $('#rdDoc').querySelectorAll('canvas.pdfpage');}
+  function layoutPages(){
+    var area=$('#rdArea'),doc=$('#rdDoc');if(!curReadDoc)return;
+    document.querySelectorAll('#rdMode [data-mode]').forEach(function(b){b.classList.toggle('on',b.getAttribute('data-mode')===readPrefs.mode);});
+    var paged=readPrefs.mode==='page';
+    function clearPaged(){doc.style.translate='';doc.style.transform='';doc.style.columnWidth='';doc.style.columnGap='';doc.style.height='';doc.style.width='';doc.style.padding='';doc.style.boxSizing='';}
+    if(!paged){
+      area.classList.remove('paged');doc.classList.remove('paged');
+      clearPaged();
+      pageableCanvases().forEach(function(cv){cv.style.display='';});
+      $('#rdPager').style.display='none';
+      if(pendingJump&&pendingJump.scroll!=null){area.scrollTop=pendingJump.scroll;}
+      pendingJump=null;return;
+    }
+    if(area.clientHeight<50)return; /* reading view not visible yet — defer, keep pendingJump */
+    area.classList.add('paged');doc.classList.add('paged');
+    if(curReadDoc.type==='pdf'){
+      var cvs=pageableCanvases();pageCount=Math.max(1,cvs.length);
+      var target=(pendingJump&&pendingJump.page!=null)?pendingJump.page:pageIdx;pendingJump=null;
+      pageIdx=Math.max(0,Math.min(pageCount-1,target));
+      cvs.forEach(function(cv,i){cv.style.display=i===pageIdx?'':'none';});
+      clearPaged();
+      updatePager();return;
+    }
+    /* text: flow into fixed-height columns; page stride = full viewport width so
+       the gutter falls entirely in the side padding (no next-page sliver) */
+    var pad=48, gap=2*pad;
+    var vw=area.clientWidth, vh=area.clientHeight-56;
+    var pageW=Math.max(220,vw-2*pad);
+    doc.style.translate='0px';doc.style.boxSizing='border-box';doc.style.width=vw+'px';doc.style.padding='0 '+pad+'px';
+    doc.style.height=vh+'px';doc.style.columnWidth=pageW+'px';doc.style.columnGap=gap+'px';
+    pageStride=vw;
+    var total=doc.scrollWidth;
+    pageCount=Math.max(1,Math.round(total/pageStride));
+    var target2=(pendingJump&&pendingJump.page!=null)?pendingJump.page:pageIdx;pendingJump=null;
+    gotoPage(target2);
+  }
+  function gotoPage(i){
+    pageIdx=Math.max(0,Math.min(pageCount-1,i));
+    var doc=$('#rdDoc');
+    if(curReadDoc&&curReadDoc.type==='pdf'){pageableCanvases().forEach(function(cv,k){cv.style.display=k===pageIdx?'':'none';});$('#rdArea').scrollTop=0;}
+    else{doc.style.translate=(-pageIdx*pageStride)+'px';}
+    updatePager();
+  }
+  function updatePager(){
+    $('#rdPager').style.display=(readPrefs.mode==='page')?'flex':'none';
+    $('#rdPageInfo').textContent='Page '+(pageIdx+1)+' of '+pageCount;
+    $('#rdPrev').style.visibility=$('#rdPrev2').style.visibility=(pageIdx>0?'visible':'hidden');
+    $('#rdNext').style.visibility=$('#rdNext2').style.visibility=(pageIdx<pageCount-1?'visible':'hidden');
+    updateBookmarkBtn();
+  }
+  function updateBookmarkBtn(){
+    var bm=curReadDoc&&readPrefs.bm[curReadDoc.id];
+    $('#rdBookmark').classList.toggle('on',!!bm&&bm.page===pageIdx&&readPrefs.mode==='page');
+  }
+  function nextPage(){if(pageIdx<pageCount-1)gotoPage(pageIdx+1);}
+  function prevPage(){if(pageIdx>0)gotoPage(pageIdx-1);}
+  function repaginate(){if(readPrefs.mode==='page'&&curReadDoc&&curReadDoc.type!=='pdf')layoutPages();}
+  $('#rdPrev').onclick=$('#rdPrev2').onclick=prevPage;
+  $('#rdNext').onclick=$('#rdNext2').onclick=nextPage;
+  document.querySelectorAll('#rdMode [data-mode]').forEach(function(b){b.onclick=function(){
+    readPrefs.mode=b.getAttribute('data-mode');saveReadPrefs();pageIdx=0;layoutPages();
+  };});
+  /* arrow keys turn pages when reading */
+  document.addEventListener('keydown',function(e){
+    if(readPrefs.mode!=='page')return;
+    var rv=document.querySelector('.view[data-view="read"]');if(!rv||!rv.classList.contains('on'))return;
+    var t=e.target;if(t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable))return;
+    if(e.key==='ArrowRight'||e.key==='PageDown'){e.preventDefault();nextPage();}
+    else if(e.key==='ArrowLeft'||e.key==='PageUp'){e.preventDefault();prevPage();}
+  });
+  /* bookmark: save where you are; reopening the book jumps back */
+  $('#rdBookmark').onclick=function(){
+    if(!curReadDoc)return;
+    var cur=readPrefs.bm[curReadDoc.id];
+    if(cur&&cur.page===pageIdx&&readPrefs.mode==='page'){delete readPrefs.bm[curReadDoc.id];saveReadPrefs();updateBookmarkBtn();toast('Bookmark removed.');return;}
+    readPrefs.bm[curReadDoc.id]=(readPrefs.mode==='page')?{page:pageIdx}:{scroll:$('#rdArea').scrollTop};
+    saveReadPrefs();updateBookmarkBtn();toast('Bookmarked — reopen this book to jump back here.');
+  };
+  var rzTimer=null;
+  window.addEventListener('resize',function(){if(readPrefs.mode!=='page')return;clearTimeout(rzTimer);rzTimer=setTimeout(function(){var keep=pageIdx;pendingJump={page:keep};layoutPages();},200);});
   /* ---- in-app PDF viewer (renders real pages, keeps formatting) ---- */
   async function renderPdf(d){
     var doc=$('#rdDoc');doc.innerHTML='<div class="pdfloading">Opening “'+esc(d.title)+'”…</div>';
@@ -3190,6 +3302,7 @@
       wrap.appendChild(cv);
       try{await page.render({canvasContext:cv.getContext('2d'),viewport:vp}).promise;}catch(e){}
     }
+    layoutPages();
   }
   /* ---- reading highlighter (saved as character ranges per book) ---- */
   function renderHl(id){
@@ -3226,7 +3339,9 @@
       arr=readPrefs.hl[id]=arr.filter(function(h){return h.end<=s||h.start>=e;}); // replace overlaps
       arr.push({start:s,end:e,color:color});
     }
-    saveReadPrefs();sel.removeAllRanges();renderHl(id);return true;
+    saveReadPrefs();sel.removeAllRanges();renderHl(id);
+    if(readPrefs.mode==='page'){pendingJump={page:pageIdx};layoutPages();}
+    return true;
   }
   document.querySelectorAll('#rdHl [data-hlc]').forEach(function(b){
     b.addEventListener('mousedown',function(e){e.preventDefault();});
@@ -3237,6 +3352,7 @@
   function openReading(id){
     var d=readAll().filter(function(x){return x.id==id;})[0]||readAll()[0];if(!d)return;
     readPrefs.last=d.id;saveReadPrefs();
+    pageIdx=0;pendingJump=readPrefs.bm[d.id]||null; /* resume at bookmark if there is one */
     paintDoc(d);
     try{$('#rdLib').value=d.id;}catch(e){}
   }
@@ -3247,10 +3363,10 @@
   };});
   $('#rdPlus').onclick=function(){
     if(curReadDoc&&curReadDoc.type==='pdf'){pdfScale=Math.min(3,pdfScale+0.15);readPrefs.pdfScale=pdfScale;saveReadPrefs();paintPdfPages();return;}
-    readPrefs.size=Math.min(30,readPrefs.size+1);saveReadPrefs();$('#rdDoc').style.fontSize=readPrefs.size+'px';};
+    readPrefs.size=Math.min(30,readPrefs.size+1);saveReadPrefs();$('#rdDoc').style.fontSize=readPrefs.size+'px';repaginate();};
   $('#rdMinus').onclick=function(){
     if(curReadDoc&&curReadDoc.type==='pdf'){pdfScale=Math.max(0.6,pdfScale-0.15);readPrefs.pdfScale=pdfScale;saveReadPrefs();paintPdfPages();return;}
-    readPrefs.size=Math.max(13,readPrefs.size-1);saveReadPrefs();$('#rdDoc').style.fontSize=readPrefs.size+'px';};
+    readPrefs.size=Math.max(13,readPrefs.size-1);saveReadPrefs();$('#rdDoc').style.fontSize=readPrefs.size+'px';repaginate();};
   $('#rdImport').onclick=function(){$('#rdFile').click();};
   async function importFile(f){
     var ext=(f.name.split('.').pop()||'').toLowerCase(),name=f.name.replace(/\.[^.]+$/,'');
